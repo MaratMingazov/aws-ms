@@ -1,4 +1,4 @@
-package maratmingazovr.awsms;
+package maratmingazovr.aws_ms;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
