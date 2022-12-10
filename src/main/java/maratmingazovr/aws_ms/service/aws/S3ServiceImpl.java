@@ -17,6 +17,7 @@ public class S3ServiceImpl implements S3Service{
 
     @Override
     public void createBucket(@NonNull String bucketName) {
+
         CreateBucketRequest request = CreateBucketRequest
                 .builder()
                 .bucket(bucketName)
