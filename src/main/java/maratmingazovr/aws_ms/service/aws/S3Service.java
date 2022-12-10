@@ -6,7 +6,9 @@ import org.apache.commons.lang3.StringUtils;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-interface S3Service {
+public interface S3Service {
+
+    void createBucket(@NonNull String bucketName);
 
     @NonNull
     static String getBucketFromUrl(@NonNull String s3Url) {
