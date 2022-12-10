@@ -34,3 +34,9 @@ info:
     java:
       version: @java.version@
   build-timestamp: @maven.build.timestamp@
+
+aws:
+  access-key-id: ${ACCESS_KEY_ID}
+  secret-access-key: ${SECRET_ACCESS_KEY}
+  region: ${REGION}
+  account-id: ${ACCOUNT_ID}
