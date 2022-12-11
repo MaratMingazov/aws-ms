@@ -10,6 +10,8 @@ public interface S3Service {
 
     void createBucket(@NonNull String bucketName);
 
+    void deleteBucket(@NonNull String bucketName);
+
     @NonNull
     static String getBucketFromUrl(@NonNull String s3Url) {
         return convertS3UrlStringToUrl(s3Url).getHost();

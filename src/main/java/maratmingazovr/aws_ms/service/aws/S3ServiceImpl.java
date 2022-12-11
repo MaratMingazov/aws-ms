@@ -19,7 +19,16 @@ public class S3ServiceImpl implements S3Service{
         try {
             s3Client.createBucket(builder -> builder.bucket(bucketName).build());
         } catch (Exception ex) {
-            throw new AwsSdkException(String.format("S3ServiceImplException: Unable create a bucket='%s'. '%s'", bucketName, ex.getMessage()), ex);
+            throw new AwsSdkException(String.format("S3ServiceImplException: Unable to create a bucket='%s'. '%s'", bucketName, ex.getMessage()), ex);
+        }
+    }
+
+    @Override
+    public void deleteBucket(@NonNull String bucketName) {
+        try {
+            s3Client.deleteBucket(builder -> builder.bucket(bucketName).build());
+        } catch (Exception ex) {
+            throw new AwsSdkException(String.format("S3ServiceImplException: Unable to delete a bucket='%s'. '%s'", bucketName, ex.getMessage()), ex);
         }
     }
 }
