@@ -1,16 +1,21 @@
 package maratmingazovr.aws_ms.service.aws;
 
 import lombok.NonNull;
+import maratmingazovr.aws_ms.model.aws.AwsBucket;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public interface S3Service {
 
     void createBucket(@NonNull String bucketName);
 
     void deleteBucket(@NonNull String bucketName);
+
+    @NonNull
+    List<AwsBucket> getBuckets();
 
     @NonNull
     static String getBucketFromUrl(@NonNull String s3Url) {
