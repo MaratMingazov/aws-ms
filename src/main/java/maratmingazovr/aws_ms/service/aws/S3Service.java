@@ -4,6 +4,7 @@ import lombok.NonNull;
 import maratmingazovr.aws_ms.model.aws.AwsBucket;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -13,6 +14,13 @@ public interface S3Service {
     void createBucket(@NonNull String bucketName);
 
     void deleteBucket(@NonNull String bucketName);
+
+    /**
+     *
+     * @param url format s3://bucket-name/path/file.txt
+     * @param inputStream
+     */
+    void putObject(@NonNull String url, @NonNull InputStream inputStream);
 
     @NonNull
     List<AwsBucket> getBuckets();
@@ -24,7 +32,7 @@ public interface S3Service {
 
     @NonNull
     static String getPathFromUrl(@NonNull String s3Url) {
-        return convertS3UrlStringToUrl(s3Url).getPath();
+        return convertS3UrlStringToUrl(s3Url).getPath().substring(1);
     }
 
     @NonNull
