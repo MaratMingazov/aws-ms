@@ -12,9 +12,14 @@ import javax.validation.constraints.NotNull;
 public class FileUploadRequestDTO {
 
     @NotNull
+    String bucketName;
+
+    @NotNull
     MultipartFile file;
 
-    public FileUploadRequestDTO(@JsonProperty("file") @NotNull MultipartFile file) {
+    public FileUploadRequestDTO(@JsonProperty("bucketName") @NotNull String bucketName,
+                                @JsonProperty("file") @NotNull MultipartFile file) {
+        this.bucketName = bucketName;
         this.file = file;
     }
 }

@@ -53,10 +53,11 @@ public class AwsController {
     }
 
     @PostMapping("/file/upload")
-    public ResponseEntity<Void> uploadImage(@ModelAttribute FileUploadRequestDTO fileUploadRequestDTO) {
+    public ResponseEntity<Void> uploadFile(@ModelAttribute FileUploadRequestDTO fileUploadRequestDTO) {
         val file = fileUploadRequestDTO.getFile();
         val inputStream = fileService.getInputStream(file);
-        s3Service.putObject(file.getName(), inputStream);
+        val url = "s3://" + fileUploadRequestDTO.getBucketName() + "/" + file.getOriginalFilename();
+        s3Service.putObject(url, inputStream);
         return ResponseEntity.ok().build();
     }
 }
