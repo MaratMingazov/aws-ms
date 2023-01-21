@@ -2,6 +2,7 @@ package maratmingazovr.aws_ms.service.aws;
 
 import lombok.NonNull;
 import maratmingazovr.aws_ms.model.aws.AwsBucket;
+import maratmingazovr.aws_ms.model.aws.AwsObject;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.InputStream;
@@ -21,6 +22,12 @@ public interface S3Service {
      * @param inputStream
      */
     void putObject(@NonNull String url, @NonNull InputStream inputStream);
+
+    /**
+     *
+     * @param bucketName given bucketName
+     */
+    List<AwsObject> getBucketFiles(@NonNull String bucketName);
 
     @NonNull
     List<AwsBucket> getBuckets();

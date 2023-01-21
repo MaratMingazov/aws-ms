@@ -10,7 +10,7 @@ import java.time.Instant;
 
 @Value
 @Validated
-public class AwsBucketDto {
+public class AwsBucketResponseDTO {
 
     @NonNull
     @JsonProperty("name")
@@ -20,7 +20,7 @@ public class AwsBucketDto {
     @JsonProperty("creationDate")
     Instant creationDate;
 
-    public AwsBucketDto(@NonNull AwsBucket bucket) {
+    public AwsBucketResponseDTO(@NonNull AwsBucket bucket) {
         this.name = bucket.getName();
         this.creationDate = bucket.getCreationDate();
     }

@@ -7,10 +7,15 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import maratmingazovr.aws_ms.exception.AwsSdkException;
 import maratmingazovr.aws_ms.model.aws.AwsBucket;
+import maratmingazovr.aws_ms.model.aws.AwsObject;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tagging;
 
@@ -54,6 +59,20 @@ public class S3ServiceImpl implements S3Service{
             throw new AwsSdkException(String.format("S3ServiceImplException: Could not convert inputStream to byteArray for url='%s'. '%s'", url, ex.getMessage()), ex);
         } catch (Exception ex) {
             throw new AwsSdkException(String.format("S3ServiceImplException: Unable to upload file for url='%s'. '%s'", url, ex.getMessage()), ex);
+        }
+
+    }
+
+    public List<AwsObject> getBucketFiles(@NonNull String bucketName) {
+        try {
+            val request = ListObjectsRequest.builder().bucket(bucketName).build();
+            val response = s3Client.listObjects(request);
+            List<S3Object> content = response.contents();
+            return content.stream()
+                          .map(AwsObject::new)
+                          .collect(Collectors.toList());
+        } catch (Exception ex) {
+            throw new AwsSdkException(String.format("S3ServiceImplException: Unable to get bucketFiles for bucketName='%s'. '%s'", bucketName, ex.getMessage()), ex);
         }
 
     }
