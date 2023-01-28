@@ -52,7 +52,7 @@
           "#!/bin/bash\n",
           "yum update -y\n",
           "mkdir /tmp\n",
-          "mkdir /tmp/amol\n"
+          "mkdir /tmp/hello-world\n"
         ]]}}
       }
     }
