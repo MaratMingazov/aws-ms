@@ -137,5 +137,24 @@
         ]]}}
       }
     }
+  },
+
+  "Outputs": {
+    "InstanceId" : {
+      "Description" : "InstanceId of the newly created EC2 instance",
+      "Value" : { "Ref" : "EC2Instance" }
+    },
+    "AZ" : {
+      "Description" : "Availability Zone of the newly created EC2 instance",
+      "Value" : { "Fn::GetAtt" : [ "EC2Instance", "AvailabilityZone" ] }
+    },
+    "InstanceDNSName": {
+      "Value": {"Fn::GetAtt": ["WebServerInstance", "PublicDnsName"]},
+      "Description": "Instance DNS name"
+    },
+    "InstanceIP" : {
+      "Value": {"Fn::GetAtt": ["WebServerInstance", "PublicIp"]},
+      "Description": "Instance public IP"
+    }
   }
 }
