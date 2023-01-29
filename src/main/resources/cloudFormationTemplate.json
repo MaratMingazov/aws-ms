@@ -142,11 +142,11 @@
   "Outputs": {
     "InstanceId" : {
       "Description" : "InstanceId of the newly created EC2 instance",
-      "Value" : { "Ref" : "EC2Instance" }
+      "Value" : { "Ref" : "WebServerInstance" }
     },
     "AZ" : {
       "Description" : "Availability Zone of the newly created EC2 instance",
-      "Value" : { "Fn::GetAtt" : [ "EC2Instance", "AvailabilityZone" ] }
+      "Value" : { "Fn::GetAtt" : [ "WebServerInstance", "AvailabilityZone" ] }
     },
     "InstanceDNSName": {
       "Value": {"Fn::GetAtt": ["WebServerInstance", "PublicDnsName"]},
