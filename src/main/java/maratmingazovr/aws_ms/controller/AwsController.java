@@ -59,6 +59,7 @@ public class AwsController {
         val inputStream = fileService.getInputStream(file);
         val url = "s3://" + fileUploadRequestDTO.getBucketName() + "/" + file.getOriginalFilename();
         s3Service.putObject(url, inputStream);
+        log.info("AwsController: successfully have uploaded file = " + url);
         return ResponseEntity.ok().build();
     }
 
