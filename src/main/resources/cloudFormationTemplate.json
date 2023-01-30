@@ -133,7 +133,7 @@
           "#!/bin/bash\n",
           "yum update -y\n",
           "mkdir /tmp\n",
-          "mkdir /tmp/hello-world\n"
+          "mkdir /tmp/hello-world2\n"
         ]]}}
       }
     }
