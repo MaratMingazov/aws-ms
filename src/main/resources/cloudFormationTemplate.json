@@ -123,22 +123,82 @@
 
     "WebServerInstance": {
       "Type" : "AWS::EC2::Instance",
+      "Metadata" : {
+        "Comment1" : "Install httpd",
+
+        "AWS::CloudFormation::Init" : {
+          "configSets" : {
+            "InstallHttpd" : [ "install_httpd" ],
+            "UninstallHttpd" : [ "uninstall_httpd" ]
+          },
+
+          "install_httpd" : {
+            "packages" : {
+              "yum" : {
+                "httpd"      : [],
+                "php"        : [],
+                "php-mysql"  : [],
+                "stress"     : []
+              }
+            },
+
+            "files" : {
+              "/var/www/html/healthy.html" : {
+                "content" : "I am healthy"
+              },
+              "/var/www/html/index.html" : {
+                "content" : "<html><title>Title</title><body><h1>Hello User!</h1></body></html>"
+              }
+            },
+
+            "commands" : {
+              "httpd" : {
+                "command" : "chkconfig httpd on",
+                "ignoreErrors" : "false"
+              }
+            },
+
+            "services" : {
+              "sysvinit" : {
+                "httpd"   : { "enabled" : "true", "ensureRunning" : "true" }
+              }
+            }
+          },
+
+          "uninstall_httpd" : {
+            "commands" : {
+              "httpd" : {
+                "command" : "rm -rf /var/www/html",
+                "ignoreErrors" : "false"
+              }
+            }
+
+          }
+
+        }
+      },
       "Properties": {
         "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
           { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
         "InstanceType": {"Ref": "InstanceType"},
         "SecurityGroups": [{"Ref": "WebServerSecurityGroup"}],
         "KeyName": {"Ref": "KeyName"},
-        "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
-          "#!/bin/bash\n",
-          "yum update -y\n",
-          "mkdir /tmp\n",
-          "mkdir /tmp/web\n",
-          "yum install httpd php php-mysql stress -y\n",
-          "echo '<html><title>Hello User Title</title><body><h1>header H1</h1></body></html>' > /var/www/html/index.html\n",
-          "echo 'i am healthy' > /var/www/html/healthy.html\n",
-          "service httpd start\n",
-          "chkconfig httpd on\n"
+        "UserData"       : { "Fn::Base64" : { "Fn::Join" : ["", [
+          "#!/bin/bash -xe\n",
+          "yum update aws-cfn-bootstrap\n",
+
+          "# Install the files and packages from the metadata\n",
+          "/opt/aws/bin/cfn-init ",
+          "         --stack ", { "Ref" : "AWS::StackName" },
+          "         --resource WebServerInstance ",
+          "         --configsets InstallHttpd ",
+          "         --region ", { "Ref" : "AWS::Region" }, "\n",
+
+          "# Signal the status from cfn-init\n",
+          "/opt/aws/bin/cfn-signal -e $? ",
+          "         --stack ", { "Ref" : "AWS::StackName" },
+          "         --resource WebServerInstance ",
+          "         --region ", { "Ref" : "AWS::Region" }, "\n"
         ]]}}
       }
     }
