@@ -3,10 +3,10 @@ package maratmingazovr.aws_ms.controller;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import maratmingazovr.aws_ms.dto.AwsBucketResponseDTO;
-import maratmingazovr.aws_ms.dto.AwsObjectResponseDTO;
-import maratmingazovr.aws_ms.dto.CreateBucketRequestDTO;
-import maratmingazovr.aws_ms.dto.FileUploadRequestDTO;
+import maratmingazovr.aws_ms.dto.s3.AwsBucketResponseDTO;
+import maratmingazovr.aws_ms.dto.s3.AwsObjectResponseDTO;
+import maratmingazovr.aws_ms.dto.s3.CreateBucketRequestDTO;
+import maratmingazovr.aws_ms.dto.s3.FileUploadRequestDTO;
 import maratmingazovr.aws_ms.service.aws.FileService;
 import maratmingazovr.aws_ms.service.aws.S3Service;
 import org.springframework.http.ResponseEntity;
@@ -59,7 +59,7 @@ public class AwsS3Controller {
         val inputStream = fileService.getInputStream(file);
         val url = "s3://" + fileUploadRequestDTO.getBucketName() + "/" + file.getOriginalFilename();
         s3Service.putObject(url, inputStream);
-        log.info("AwsController: successfully have uploaded file = " + url);
+        log.info("AwsS3Controller: successfully have uploaded file = " + url);
         return ResponseEntity.ok().build();
     }
 
