@@ -11,7 +11,7 @@
 
 	<groupId>maratmingazovr</groupId>
 	<artifactId>aws-ms</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>aws-ms</name>
 	<description>aws-ms</description>
 
