@@ -25,26 +25,26 @@ import java.util.stream.Collectors;
 @Log4j2
 @RestController
 @AllArgsConstructor
-@RequestMapping("/aws")
-public class AwsController {
+@RequestMapping("/aws/buckets")
+public class AwsBucketController {
 
     private final S3Service s3Service;
 
     private final FileService fileService;
 
-    @PostMapping("/buckets")
+    @PostMapping
     public ResponseEntity<Void> createBucket(@RequestBody CreateBucketRequestDTO request) {
         s3Service.createBucket(request.getBucketName());
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/buckets")
+    @DeleteMapping
     public ResponseEntity<Void> deleteBucket(@RequestParam String bucketName) {
         s3Service.deleteBucket(bucketName);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/buckets")
+    @GetMapping
     public ResponseEntity<List<AwsBucketResponseDTO>> getBuckets() {
         val buckets = s3Service.getBuckets();
         val bucketsDto = buckets.stream()
