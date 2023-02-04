@@ -1,4 +1,4 @@
-package maratmingazovr.aws_ms.dto;
+package maratmingazovr.aws_ms.dto.s3;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.NonNull;
