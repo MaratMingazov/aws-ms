@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/aws/buckets")
-public class AwsBucketController {
+public class AwsS3Controller {
 
     private final S3Service s3Service;
 
