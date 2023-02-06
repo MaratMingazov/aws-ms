@@ -24,6 +24,12 @@ public interface S3Service {
     void putObject(@NonNull String url, @NonNull InputStream inputStream);
 
     /**
+     * Delete file from bucket
+     * @param url format s3://bucket-name/path/file.txt
+     */
+    void deleteObject(@NonNull String url);
+
+    /**
      *
      * @param bucketName given bucketName
      */
@@ -52,5 +58,17 @@ public interface S3Service {
         } catch (URISyntaxException ex) {
             throw new IllegalArgumentException(String.format("S3ServiceException: s3Url invalid ('%s')", s3Url), ex);
         }
+    }
+
+    /**
+     *
+     * @param bucketName given bucketName
+     * @param fileName given fileName
+     * @return url format s3://bucket-name/path/file.txt
+     */
+    @NonNull
+    static String createURLFromBucketNameAndFileName(@NonNull String bucketName,
+                                                     @NonNull String fileName) {
+        return "s3://" + bucketName + "/" + fileName;
     }
 }

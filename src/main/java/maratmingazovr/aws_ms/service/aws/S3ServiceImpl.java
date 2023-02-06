@@ -11,6 +11,7 @@ import maratmingazovr.aws_ms.model.aws.AwsObject;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
@@ -63,6 +64,7 @@ public class S3ServiceImpl implements S3Service{
 
     }
 
+    @Override
     public List<AwsObject> getBucketFiles(@NonNull String bucketName) {
         try {
             val request = ListObjectsRequest.builder().bucket(bucketName).build();
@@ -72,11 +74,31 @@ public class S3ServiceImpl implements S3Service{
                           .map(AwsObject::new)
                           .collect(Collectors.toList());
         } catch (Exception ex) {
-            throw new AwsSdkException(String.format("S3ServiceImplException: Unable to get bucketFiles for bucketName='%s'. '%s'", bucketName, ex.getMessage()), ex);
+            throw new AwsSdkException(String.format("S3ServiceException: Unable to get bucketFiles for bucketName='%s'. '%s'", bucketName, ex.getMessage()), ex);
         }
 
     }
 
+    @Override
+    public void deleteObject(@NonNull String url) {
+        val deleteObjectRequest = DeleteObjectRequest
+                .builder()
+                .bucket(S3Service.getBucketFromUrl(url))
+                .key(S3Service.getPathFromUrl(url))
+                .build();
+        try {
+            s3Client.deleteObject(deleteObjectRequest);
+        } catch (Exception ex) {
+            throw new AwsSdkException(String.format("S3ServiceException: Unable to delete file='%s'. '%s'", url, ex.getMessage()), ex);
+        }
+    }
+
+    /**
+     *
+     * @param url format s3://bucket-name/path/file.txt
+     * @param requestBody
+     * @param tagsMap
+     */
     private void putObject(@NonNull String url,
                            @NonNull RequestBody requestBody,
                            @NonNull Map<String, String> tagsMap) {
@@ -87,7 +109,6 @@ public class S3ServiceImpl implements S3Service{
                 .key(S3Service.getPathFromUrl(url))
                 .build();
         s3Client.putObject(request, requestBody);
-
     }
 
     private void addTagsIfNeeded(@NonNull PutObjectRequest.Builder builder,

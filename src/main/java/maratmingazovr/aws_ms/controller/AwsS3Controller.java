@@ -6,6 +6,7 @@ import lombok.val;
 import maratmingazovr.aws_ms.dto.s3.AwsBucketResponseDTO;
 import maratmingazovr.aws_ms.dto.s3.AwsObjectResponseDTO;
 import maratmingazovr.aws_ms.dto.s3.CreateBucketRequestDTO;
+import maratmingazovr.aws_ms.dto.s3.FileDeleteRequestDTO;
 import maratmingazovr.aws_ms.dto.s3.FileUploadRequestDTO;
 import maratmingazovr.aws_ms.service.aws.FileService;
 import maratmingazovr.aws_ms.service.aws.S3Service;
@@ -53,11 +54,13 @@ public class AwsS3Controller {
         return ResponseEntity.ok(bucketsDto);
     }
 
-    @PostMapping("/files/upload")
+    @PostMapping("/files")
     public ResponseEntity<Void> uploadFile(@ModelAttribute FileUploadRequestDTO fileUploadRequestDTO) {
         val file = fileUploadRequestDTO.getFile();
         val inputStream = fileService.getInputStream(file);
-        val url = "s3://" + fileUploadRequestDTO.getBucketName() + "/" + file.getOriginalFilename();
+        val bucketName = fileUploadRequestDTO.getBucketName();
+        val fileName = file.getOriginalFilename();
+        val url = S3Service.createURLFromBucketNameAndFileName(bucketName, fileName);
         s3Service.putObject(url, inputStream);
         log.info("AwsS3Controller: successfully have uploaded file = " + url);
         return ResponseEntity.ok().build();
@@ -70,5 +73,13 @@ public class AwsS3Controller {
                                  .map(AwsObjectResponseDTO::new)
                                  .collect(Collectors.toList());
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/files")
+    public ResponseEntity<Void> deleteFile(@RequestBody FileDeleteRequestDTO request) {
+        val url = S3Service.createURLFromBucketNameAndFileName(request.getBucketName(), request.getFileName());
+        s3Service.deleteObject(url);
+        log.info("AwsS3Controller: successfully have deleted file = " + url);
+        return ResponseEntity.ok().build();
     }
 }
