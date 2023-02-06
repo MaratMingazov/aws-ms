@@ -1,7 +1,7 @@
 Description: This template deploys a VPC, with a pair of public and private subnets spread across two Availability Zones. It deploys an Internet gateway, with a default route on the public subnets. It deploys a pair of NAT gateways (one in each AZ), and default routes for them in the private subnets
 
 Parameters:
-  VPC_CIDR:
+  VPCCIDR:
     Description: Please enter the IP range (CIDR notation) for this VPC
     Type: String
     Default: 10.0.0.0/16
@@ -26,7 +26,7 @@ Resources:
   VPC:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: !Ref VPC_CIDR
+      CidrBlock: !Ref VPCCIDR
       EnableDnsSupport: true
       EnableDnsHostnames: true
       Tags:
