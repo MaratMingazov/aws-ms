@@ -187,6 +187,9 @@ Resources:
       GroupName: "WebServerSecurityGroup"
       GroupDescription: "WebServerSecurityGroupDescription"
       VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: WebServerSecurityGroup
   SecurityGroupSSHRule:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -231,3 +234,5 @@ Outputs:
   SecurityGroup:
     Description: Security group
     Value: !Ref WebServerSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-WebServerSecurityGroup
