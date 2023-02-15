@@ -106,7 +106,7 @@ Resources:
       SubnetId: !Ref PublicSubnet2
 
   PublicRouteTable:
-    Type: AWS::EC2:RouteTable
+    Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
       Tags:
