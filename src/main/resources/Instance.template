@@ -1,0 +1,77 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template deploys an Instance
+
+Parameters:
+  ImportedStackName:
+    Type: String
+
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
+    ConstraintDescription: Must be the name of an existing EC2 KeyPair
+
+  InstanceType:
+    Type: String
+    Description: WebServer EC2 instance type
+    Default: t2.micro
+    AllowedValues:
+      - t1.micro
+      - t2.nano
+      - t2.micro
+    ConstraintDescription: Must be a valid EC2 instance type
+
+Mappings:
+  AWSInstanceType2Arch:
+    t1.micro:
+      Arch: HVM64
+    t2.nano:
+      Arch: HVM64
+    t2.micro:
+      Arch: HVM64
+    t2.small:
+      Arch: HVM64
+    t2.medium:
+      Arch: HVM64
+    t2.large:
+       Arch: HVM64
+    m1.small:
+      Arch: HVM64
+    m1.medium:
+      Arch: HVM64
+
+  AWSRegionArch2AMI:
+    us-east-1:
+      HVM64: ami-6869aa05
+    us-west-2:
+      HVM64: ami-7172b611
+    us-west-1:
+      HVM64: ami-31490d51
+    eu-west-1:
+      HVM64: ami-f9dd458a
+    eu-west-2:
+      HVM64: ami-886369ec
+    us-east-2:
+      HVM64: ami-f6035893
+
+
+
+Resources:
+
+  WebServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      ImageId: !FindInMap ["AWSRegionArch2AMI", !Ref AWS::Region, !FindInMap ["AWSInstanceType2Arch", !Ref InstanceType, "Arch"] ]
+      NetworkInterfaces:
+        - SubnetId:
+            Fn::ImportValue: !Sub ${ImportedStackName}-WebServerPublicSubnet
+          AssociatePublicIpAddress: true
+          DeleteOnTermination: true
+          GroupSet:
+            - Fn::ImportValue: !Sub ${ImportedStackName}-WebServerSecurityGroup
+          Tags:
+            - Key: Name
+              Value: WebServerNetworkInterface
+
