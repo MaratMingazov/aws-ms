@@ -66,7 +66,7 @@ Resources:
       ImageId: !FindInMap ["AWSRegionArch2AMI", !Ref AWS::Region, !FindInMap ["AWSInstanceType2Arch", !Ref InstanceType, "Arch"] ]
       NetworkInterfaces:
         - SubnetId:
-            Fn::ImportValue: !Sub ${ImportedStackName}-WebServerPublicSubnet
+            Fn::ImportValue: !Sub ${ImportedStackName}-WebServerPublicSubnet1
           AssociatePublicIpAddress: true
           DeleteOnTermination: true
           GroupSet:
