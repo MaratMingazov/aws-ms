@@ -71,7 +71,4 @@ Resources:
           DeleteOnTermination: true
           GroupSet:
             - Fn::ImportValue: !Sub ${ImportedStackName}-WebServerSecurityGroup
-          Tags:
-            - Key: Name
-              Value: WebServerNetworkInterface
 
