@@ -42,7 +42,7 @@ Mappings:
 
   AWSRegionArch2AMI:
     us-east-1:
-      HVM64: ami-6869aa05
+      HVM64: ami-0dfcb1ef8550277af
     us-west-2:
       HVM64: ami-7172b611
     us-west-1:
@@ -64,7 +64,7 @@ Resources:
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       ImageId: !FindInMap ["AWSRegionArch2AMI", !Ref AWS::Region, !FindInMap ["AWSInstanceType2Arch", !Ref InstanceType, "Arch"] ]
-      SecurityGroups:
+      SecurityGroupIds:
         - Fn::ImportValue: !Sub ${ImportedStackName}-WebServerSecurityGroup
       SubnetId:
         Fn::ImportValue: !Sub ${ImportedStackName}-WebServerPublicSubnet1
