@@ -68,6 +68,7 @@ Resources:
         - SubnetId:
             Fn::ImportValue: !Sub ${ImportedStackName}-WebServerPublicSubnet1
           AssociatePublicIpAddress: true
+          DeviceIndex: 0
           DeleteOnTermination: true
           GroupSet:
             - Fn::ImportValue: !Sub ${ImportedStackName}-WebServerSecurityGroup
