@@ -11,3 +11,14 @@ aws cloudformation create-stack \
 
 
 aws cloudformation delete-stack --stack-name WebServerVPCStack
+
+aws cloudformation create-stack \
+    --stack-name WebServerInstanceStack \
+    --template-url https://maratmingazovr.s3.amazonaws.com/Instance.template \
+    --region us-east-1 \
+    --parameters \
+        ParameterKey=ImportedStackName,ParameterValue=WebServerVPCStack \
+        ParameterKey=InstanceType,ParameterValue=t2.micro \
+        ParameterKey=KeyName,ParameterValue=keyPair
+
+aws cloudformation delete-stack --stack-name WebServerInstanceStack
