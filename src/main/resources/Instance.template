@@ -60,6 +60,40 @@ Resources:
 
   WebServerInstance:
     Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install httpd
+      AWS::CloudFormation::Init:
+        configSets:
+          InstallHttpd:
+            - install_httpd
+          UninstallHttpd:
+            - uninstall_httpd
+      install_httpd:
+        packages:
+          yum:
+            httpd: []
+            php: []
+            php-mysql: []
+            stress: []
+        files:
+          '/var/www/html/healthy.html':
+            content: 'I am healthy'
+          '/var/www/html/index.html':
+            content: '<html><title>Title</title><body><h1>Hello User!</h1></body></html>'
+        commands:
+          httpd:
+            command: 'chkconfig httpd on'
+            ignoreErrors: false
+        services:
+          sysvinit:
+            httpd:
+              enabled: true
+              ensureRunning: true
+      uninstall_httpd:
+        commands:
+          httpd:
+            command: 'rm -rf /var/www/html'
+            ignoreErrors: false
     Properties:
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
@@ -79,4 +113,29 @@ Resources:
       Tags:
         - Key: Name
           Value: WebServerInstance1
-
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash
+            sudo su
+            yum update -y
+            yum install httpd
+            
+            cat <<EOF > /var/www/html/index.html
+            
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <title>MyWebpage</title>
+            </head>
+            <body>
+            
+            <h1>Welcome to my Webpage</h1>
+            <p>This is a paragraph.</p>
+            
+            </body>
+            </html>
+            
+            EOF       
+            
+            systemctl start httpd

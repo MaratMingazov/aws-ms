@@ -198,13 +198,21 @@ Resources:
       FromPort: 22
       ToPort: 22
       CidrIp: 0.0.0.0/0
-  SecurityGroupHTTPRule:
+  SecurityGroupHTTP8080Rule:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       GroupId: !Ref WebServerSecurityGroup
       IpProtocol: tcp
       FromPort: 8080
       ToPort: 8080
+      CidrIp: 0.0.0.0/0
+  SecurityGroupHTTP80Rule:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref WebServerSecurityGroup
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
       CidrIp: 0.0.0.0/0
 
 
