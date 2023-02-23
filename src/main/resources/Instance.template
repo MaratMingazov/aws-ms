@@ -20,18 +20,6 @@ Parameters:
       - t2.nano
       - t2.micro
     ConstraintDescription: Must be a valid EC2 instance type
-
-  InstanceUserData:
-    Type: String
-    Description: WebServer EC2 instance userData
-    Default:
-      !Sub |
-      #!/bin/bash
-      sudo su
-      yum update -y
-      yum install httpd -y
-      echo “Hello World from $(hostname -f)” > /var/www/html/index.html
-      systemctl start httpd
       
 
 Mappings:
@@ -85,7 +73,14 @@ Resources:
         - Key: Name
           Value: WebServerInstance1
       UserData:
-        Fn::Base64: !Ref InstanceUserData
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash
+          sudo su
+          yum update -y
+          yum install httpd -y
+          echo “Hello World from $(hostname -f)” > /var/www/html/index.html
+          systemctl start httpd
 
   WebServerInstance2:
     Type: AWS::EC2::Instance
@@ -101,4 +96,11 @@ Resources:
         - Key: Name
           Value: WebServerInstance2
       UserData:
-        Fn::Base64: !Ref InstanceUserData
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash
+          sudo su
+          yum update -y
+          yum install httpd -y
+          echo “Hello World from $(hostname -f)” > /var/www/html/index.html
+          systemctl start httpd
