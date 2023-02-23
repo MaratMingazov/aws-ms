@@ -235,12 +235,18 @@ Outputs:
   PublicSubnet2:
     Description: A reference to the public subnet in the 2nd Availability Zone
     Value: !Ref PublicSubnet2
+    Export:
+      Name: !Sub ${AWS::StackName}-WebServerPublicSubnet2
   PrivateSubnet1:
     Description: A reference to the private subnet in the 1st Availability Zone
     Value: !Ref PrivateSubnet1
+    Export:
+      Name: !Sub ${AWS::StackName}-WebServerPrivateSubnet1
   PrivateSubnet2:
     Description: A reference to the private subnet in the 2nd Availability Zone
     Value: !Ref PrivateSubnet2
+    Export:
+      Name: !Sub ${AWS::StackName}-WebServerPrivateSubnet2
   SecurityGroup:
     Description: Security group
     Value: !Ref WebServerSecurityGroup
