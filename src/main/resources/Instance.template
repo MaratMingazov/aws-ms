@@ -21,6 +21,19 @@ Parameters:
       - t2.micro
     ConstraintDescription: Must be a valid EC2 instance type
 
+  InstanceUserData:
+    Type: String
+    Description: WebServer EC2 instance userData
+    Default:
+      !Sub |
+      #!/bin/bash
+      sudo su
+      yum update -y
+      yum install httpd -y
+      echo “Hello World from $(hostname -f)” > /var/www/html/index.html
+      systemctl start httpd
+      
+
 Mappings:
   AWSInstanceType2Arch:
     t1.micro:
@@ -58,42 +71,8 @@ Mappings:
 
 Resources:
 
-  WebServerInstance:
+  WebServerInstance1:
     Type: AWS::EC2::Instance
-    Metadata:
-      Comment: Install httpd
-      AWS::CloudFormation::Init:
-        configSets:
-          InstallHttpd:
-            - install_httpd
-          UninstallHttpd:
-            - uninstall_httpd
-      install_httpd:
-        packages:
-          yum:
-            httpd: []
-            php: []
-            php-mysql: []
-            stress: []
-        files:
-          '/var/www/html/healthy.html':
-            content: 'I am healthy'
-          '/var/www/html/index.html':
-            content: '<html><title>Title</title><body><h1>Hello User!</h1></body></html>'
-        commands:
-          httpd:
-            command: 'chkconfig httpd on'
-            ignoreErrors: false
-        services:
-          sysvinit:
-            httpd:
-              enabled: true
-              ensureRunning: true
-      uninstall_httpd:
-        commands:
-          httpd:
-            command: 'rm -rf /var/www/html'
-            ignoreErrors: false
     Properties:
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
@@ -102,23 +81,24 @@ Resources:
         - Fn::ImportValue: !Sub ${ImportedStackName}-WebServerSecurityGroup
       SubnetId:
         Fn::ImportValue: !Sub ${ImportedStackName}-WebServerPublicSubnet1
-#      NetworkInterfaces:
-#        - SubnetId:
-#            Fn::ImportValue: !Sub ${ImportedStackName}-WebServerPublicSubnet1
-#          AssociatePublicIpAddress: true
-#          DeviceIndex: 0
-#          DeleteOnTermination: true
-#          GroupSet:
-#            - Fn::ImportValue: !Sub ${ImportedStackName}-WebServerSecurityGroup
       Tags:
         - Key: Name
           Value: WebServerInstance1
       UserData:
-        Fn::Base64:
-          !Sub |
-            #!/bin/bash
-            sudo su
-            yum update -y
-            yum install httpd -y
-            echo “Hello World from $(hostname -f)” > /var/www/html/index.html
-            systemctl start httpd
+        Fn::Base64: !Ref InstanceUserData
+
+  WebServerInstance2:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      ImageId: !FindInMap [ "AWSRegionArch2AMI", !Ref AWS::Region, !FindInMap [ "AWSInstanceType2Arch", !Ref InstanceType, "Arch" ] ]
+      SecurityGroupIds:
+        - Fn::ImportValue: !Sub ${ImportedStackName}-WebServerSecurityGroup
+      SubnetId:
+        Fn::ImportValue: !Sub ${ImportedStackName}-WebServerPublicSubnet2
+      Tags:
+        - Key: Name
+          Value: WebServerInstance2
+      UserData:
+        Fn::Base64: !Ref InstanceUserData
