@@ -104,3 +104,57 @@ Resources:
           yum install httpd -y
           echo “Hello World from $(hostname -f)” > /var/www/html/index.html
           systemctl start httpd
+
+  WebServerApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: WebServerApplicationLoadBalancer
+      Scheme: internet-facing
+      Type: application
+      Subnets:
+        - Fn::ImportValue: !Sub ${ImportedStackName}-WebServerPublicSubnet1
+        - Fn::ImportValue: !Sub ${ImportedStackName}-WebServerPublicSubnet2
+      SecurityGroups:
+        - Fn::ImportValue: !Sub ${ImportedStackName}-WebServerSecurityGroup
+      IpAddressType: ipv4
+      LoadBalancerAttributes:
+        - Key: access_logs.s3.enabled
+          Value: false
+
+  WebServerInstanceTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: '/index.html'
+      Port: 80
+      Protocol: HTTP
+      HealthCheckEnabled: true
+      HealthCheckPort: traffic-port
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      UnhealthyThresholdCount: 2
+      TargetType: instance
+      Targets:
+        - Id: !Ref WebServerInstance1
+          Port: 80
+        - Id: !Ref WebServerInstance2
+          Port: 80
+      Matcher:
+        HttpCode: '200'
+      HealthyThresholdCount: 5
+      VpcId:
+        Fn::ImportValue: !Sub ${ImportedStackName}-WebServerVPC
+      Name: WebServerInstanceTargetGroup
+
+  HTTPListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref WebServerApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Order: 1
+          TargetGroupArn: !Ref WebServerInstanceTargetGroup
+          Type: forward
+
+
