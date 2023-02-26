@@ -119,7 +119,11 @@ Resources:
       IpAddressType: ipv4
       LoadBalancerAttributes:
         - Key: access_logs.s3.enabled
-          Value: false
+          Value: true
+        - Key: access_logs.s3.prefix
+          Value: webserver-loadbalancer-logs
+        - Key: access_logs.s3.bucket
+          Value: maratmingazovr
 
   WebServerInstanceTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
