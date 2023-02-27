@@ -25,6 +25,7 @@ aws cloudformation delete-stack --stack-name WebServerInstanceStack
 
 aws cloudformation create-stack \
     --stack-name WebServerECSStack \
+    --capabilities CAPABILITY_NAMED_IAM \
     --template-url https://maratmingazovr.s3.amazonaws.com/ECS.template \
     --region us-east-1
 

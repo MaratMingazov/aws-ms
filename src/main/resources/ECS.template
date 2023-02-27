@@ -1,11 +1,6 @@
 
 AWSTemplateFormatVersion: '2010-09-09'
-Description: This template deploys an Instance
-
-Parameters:
-
-      
-
+Description: This template deploys an ECS cluster
 
 
 
@@ -90,4 +85,4 @@ Outputs:
     Description: The name of the ECS cluster
     Value: !Ref 'ECSCluster'
     Export:
-      Name: !Join [ '-', [ !Ref 'AWS::StackName', 'ClusterName' ] ]
+      Name: !Join [ '-', [ !Ref 'AWS::StackName', 'WebServerECSCluster' ] ]
