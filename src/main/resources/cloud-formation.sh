@@ -22,3 +22,10 @@ aws cloudformation create-stack \
         ParameterKey=KeyName,ParameterValue=keyPair
 
 aws cloudformation delete-stack --stack-name WebServerInstanceStack
+
+aws cloudformation create-stack \
+    --stack-name WebServerECSStack \
+    --template-url https://maratmingazovr.s3.amazonaws.com/ECS.template \
+    --region us-east-1
+
+aws cloudformation delete-stack --stack-name WebServerECSStack
