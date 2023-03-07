@@ -20,6 +20,20 @@ Parameters:
       - t2.nano
       - t2.micro
     ConstraintDescription: Must be a valid EC2 instance type
+
+  Path:
+    Type: String
+    Default: "*"
+    Description: A path on the public load balancer that this service
+      should be connected to. Use * to send all load balancer
+      traffic to this service.
+
+  Priority:
+    Type: Number
+    Default: 1
+    Description: The priority for the routing rule added to the load balancer.
+      This only applies if your have multiple services which have been
+      assigned to different paths on the load balancer.
       
 
 Mappings:
@@ -161,4 +175,23 @@ Resources:
           TargetGroupArn: !Ref WebServerInstanceTargetGroup
           Type: forward
 
+  # Create a rule on the load balancer for routing traffic to the target group
+  WebServerLoadBalancerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - TargetGroupArn: !Ref WebServerInstanceTargetGroup
+          Type: 'forward'
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - !Ref Path
+      ListenerArn: !Ref HTTPListener
+      Priority: !Ref Priority
 
+Outputs:
+  LoadBalancerRule:
+    Description: A reference to the created WebServerInstanceLoadBalancerRule
+    Value: !Ref WebServerLoadBalancerRule
+    Export:
+      Name: !Sub ${AWS::StackName}-WebServerLoadBalancerRule
