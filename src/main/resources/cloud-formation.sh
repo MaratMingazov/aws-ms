@@ -13,7 +13,7 @@ aws cloudformation create-stack \
 aws cloudformation delete-stack --stack-name WebServerVPCStack
 
 aws cloudformation create-stack \
-    --stack-name WebServerInstanceStack \
+    --stack-name InstanceStack \
     --template-url https://maratmingazovr.s3.amazonaws.com/Instance.template \
     --region us-east-1 \
     --parameters \
