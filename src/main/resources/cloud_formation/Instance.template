@@ -3,8 +3,9 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: This template deploys an Instance
 
 Parameters:
-  ImportedVPCStackName:
+  ImportedVPCStack:
     Type: String
+    Default: VPCStack
 
   KeyName:
     Type: AWS::EC2::KeyPair::KeyName
@@ -80,9 +81,9 @@ Resources:
       KeyName: !Ref KeyName
       ImageId: !FindInMap ["AWSRegionArch2AMI", !Ref AWS::Region, !FindInMap ["AWSInstanceType2Arch", !Ref InstanceType, "Arch"] ]
       SecurityGroupIds:
-        - Fn::ImportValue: !Sub ${ImportedVPCStackName}-SecurityGroup
+        - Fn::ImportValue: !Sub ${ImportedVPCStack}-SecurityGroup
       SubnetId:
-        Fn::ImportValue: !Sub ${ImportedVPCStackName}-PublicSubnet1
+        Fn::ImportValue: !Sub ${ImportedVPCStack}-PublicSubnet1
       Tags:
         - Key: Name
           Value: !Sub ${AWS::StackName}-Instance1
@@ -103,9 +104,9 @@ Resources:
       KeyName: !Ref KeyName
       ImageId: !FindInMap [ "AWSRegionArch2AMI", !Ref AWS::Region, !FindInMap [ "AWSInstanceType2Arch", !Ref InstanceType, "Arch" ] ]
       SecurityGroupIds:
-        - Fn::ImportValue: !Sub ${ImportedVPCStackName}-SecurityGroup
+        - Fn::ImportValue: !Sub ${ImportedVPCStack}-SecurityGroup
       SubnetId:
-        Fn::ImportValue: !Sub ${ImportedVPCStackName}-PublicSubnet2
+        Fn::ImportValue: !Sub ${ImportedVPCStack}-PublicSubnet2
       Tags:
         - Key: Name
           Value: !Sub ${AWS::StackName}-Instance2
@@ -126,10 +127,10 @@ Resources:
       Scheme: internet-facing
       Type: application
       Subnets:
-        - Fn::ImportValue: !Sub ${ImportedVPCStackName}-PublicSubnet1
-        - Fn::ImportValue: !Sub ${ImportedVPCStackName}-PublicSubnet2
+        - Fn::ImportValue: !Sub ${ImportedVPCStack}-PublicSubnet1
+        - Fn::ImportValue: !Sub ${ImportedVPCStack}-PublicSubnet2
       SecurityGroups:
-        - Fn::ImportValue: !Sub ${ImportedVPCStackName}-SecurityGroup
+        - Fn::ImportValue: !Sub ${ImportedVPCStack}-SecurityGroup
       IpAddressType: ipv4
       LoadBalancerAttributes:
         - Key: access_logs.s3.enabled
@@ -161,7 +162,7 @@ Resources:
         HttpCode: '200'
       HealthyThresholdCount: 5
       VpcId:
-        Fn::ImportValue: !Sub ${ImportedVPCStackName}-VPC
+        Fn::ImportValue: !Sub ${ImportedVPCStack}-VPC
       Name: !Sub ${AWS::StackName}-TargetGroup
 
   HTTPListener:
