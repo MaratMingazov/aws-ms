@@ -17,7 +17,7 @@ aws cloudformation create-stack \
     --template-url https://maratmingazovr.s3.amazonaws.com/Instance.template \
     --region us-east-1 \
     --parameters \
-        ParameterKey=ImportedStackName,ParameterValue=VPCStack \
+        ParameterKey=ImportedVPCStackName,ParameterValue=VPCStack \
         ParameterKey=InstanceType,ParameterValue=t2.micro \
         ParameterKey=KeyName,ParameterValue=keyPair
 

@@ -1,0 +1,101 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template deploys an Instance
+
+Parameters:
+  ImportedVPCStackName:
+    Type: String
+
+
+  Path:
+    Type: String
+    Default: "*"
+    Description: A path on the public load balancer that this service
+      should be connected to. Use * to send all load balancer
+      traffic to this service.
+
+  Priority:
+    Type: Number
+    Default: 1
+    Description: The priority for the routing rule added to the load balancer.
+      This only applies if your have multiple services which have been
+      assigned to different paths on the load balancer.
+
+
+Resources:
+
+  ECSLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: WebServerLoadBalancer
+      Scheme: internet-facing
+      Type: application
+      Subnets:
+        - Fn::ImportValue: !Sub ${ImportedVPCStackName}-WebServerPublicSubnet1
+        - Fn::ImportValue: !Sub ${ImportedVPCStackName}-WebServerPublicSubnet2
+      SecurityGroups:
+        - Fn::ImportValue: !Sub ${ImportedVPCStackName}-WebServerSecurityGroup
+      IpAddressType: ipv4
+      LoadBalancerAttributes:
+        - Key: access_logs.s3.enabled
+          Value: true
+        - Key: access_logs.s3.prefix
+          Value: ecs-loadbalancer-logs
+        - Key: access_logs.s3.bucket
+          Value: maratmingazovr
+
+  # A dummy target group is used to setup the ALB to just drop traffic
+  # initially, before any real service target groups have been added.
+  DummyTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: '/index.html'
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: traffic-port
+      HealthCheckEnabled: true
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Name: !Join ['-', [!Ref 'AWS::StackName', 'DummyTargetGroup']]
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+      VpcId:
+        Fn::ImportValue: !Sub ${ImportedStackName}-WebServerVPC
+      Matcher:
+        HttpCode: '200'
+
+  HTTPListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    DependsOn:
+      - ECSLoadBalancer
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      LoadBalancerArn: !Ref ECSLoadBalancer
+      DefaultActions:
+        - TargetGroupArn: !Ref DummyTargetGroup
+          Type: forward
+
+
+
+  # Create a rule on the load balancer for routing traffic to the target group
+  WebServerLoadBalancerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - TargetGroupArn: !Ref WebServerInstanceTargetGroup
+          Type: 'forward'
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - !Ref Path
+      ListenerArn: !Ref HTTPListener
+      Priority: !Ref Priority
+
+Outputs:
+  LoadBalancerRule:
+    Description: A reference to the created WebServerInstanceLoadBalancerRule
+    Value: !Ref WebServerLoadBalancerRule
+    Export:
+      Name: !Sub ${AWS::StackName}-WebServerLoadBalancerRule
