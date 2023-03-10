@@ -102,6 +102,11 @@ Outputs:
     Value: !Ref LoadBalancer
     Export:
       Name: !Sub ${AWS::StackName}-LoadBalancer
+  LoadBalancerUrl:
+    Description: The url of the load balancer
+    Value: !Join ['', ['http://', !GetAtt 'LoadBalancer.DNSName']]
+    Export:
+      Name: !Sub ${AWS::StackName}-LoadBalancerUrl
 #  LoadBalancerRule:
 #    Description: A reference to the created WebServerInstanceLoadBalancerRule
 #    Value: !Ref WebServerLoadBalancerRule

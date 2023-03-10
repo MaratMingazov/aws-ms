@@ -3,15 +3,9 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: This template deploys an ECS cluster
 
 Parameters:
-  StackName:
+  ImportedVPCStack:
     Type: String
-    Default: WebServerECSStack
-    Description:  The name of the parent Fargate networking stack that you created. Necessary
-                  to locate and reference resources created by that stack.
-
-  ImportedVPCStackName:
-    Type: String
-    Default: WebServerVPCStack
+    Default: VPCStack
 
   ServiceName:
     Type: String
@@ -46,43 +40,35 @@ Conditions:
 Resources:
 
   # ECS Resources
+  # We define the cluster and a security group that we will later need in the service stack.
+  #The security group allows inbound traffic from the load balancer (or, more specifically,
+  # from everything in the PublicLoadBalancerSecurityGroup) and
+  # inbound traffic from everything in the same security group so that our Docker containers can later talk to each other.
   ECSCluster:
     Type: AWS::ECS::Cluster
 
-  # The task definition. This is a simple metadata description of what
-  # container to run, and what resource requirements it has.
-  TaskDefinition:
-    Type: AWS::ECS::TaskDefinition
+  ECSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
     Properties:
-      Family: !Ref ServiceName
-      Cpu: !Ref ContainerCpu
-      Memory: !Ref ContainerMemory
-      NetworkMode: awsvpc
-      RequiresCompatibilities:
-        - FARGATE
-      ExecutionRoleArn: !Ref ECSTaskExecutionRole
-      TaskRoleArn:
-        Fn::If:
-          - HasCustomRole
-          - !Ref Role
-          - !Ref AWS::NoValue
-      ContainerDefinitions:
-        - Name: !Ref ServiceName
-          Cpu: !Ref ContainerCpu
-          Memory: !Ref ContainerMemory
-          Image: !Ref ImageUrl
-          PortMappings:
-            - ContainerPort: !Ref ContainerPort
+      GroupDescription: 'Access to ECS containers'
+      VpcId: !Sub ${ImportedVPCStack}-VPC
 
+  ECSSecurityGroupIngressFromPublicALB:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Ingress from the public LoadBalancer
+      GroupId: !Ref ECSSecurityGroup
+      IpProtocol: -1
+      SourceSecurityGroupId:
+        Fn::ImportValue: !Sub ${ImportedVPCStack}-SecurityGroup
 
-  # The service. The service is a resource which allows you to run multiple
-  # copies of a type of task, and gather up their logs and metrics, as well
-  # as monitor the number of running tasks and replace any that have crashed
-  Service:
-    Type: AWS::ECS::Service
-    DependsOn:
-
-
+  ECSSecurityGroupIngressFromSelf:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Ingress from other containers in the same security group
+      GroupId: !Ref ECSSecurityGroup
+      IpProtocol: -1
+      SourceSecurityGroupId: !Ref ECSSecurityGroup
 
 
   # This is an IAM role which authorizes ECS to manage resources on your
@@ -151,6 +137,45 @@ Resources:
                   - 'logs:CreateLogStream'
                   - 'logs:PutLogEvents'
                 Resource: '*'
+
+
+
+
+
+#  # The task definition. This is a simple metadata description of what
+#  # container to run, and what resource requirements it has.
+#  TaskDefinition:
+#    Type: AWS::ECS::TaskDefinition
+#    Properties:
+#      Family: !Ref ServiceName
+#      Cpu: !Ref ContainerCpu
+#      Memory: !Ref ContainerMemory
+#      NetworkMode: awsvpc
+#      RequiresCompatibilities:
+#        - FARGATE
+#      ExecutionRoleArn: !Ref ECSTaskExecutionRole
+#      TaskRoleArn:
+#        Fn::If:
+#          - HasCustomRole
+#          - !Ref Role
+#          - !Ref AWS::NoValue
+#      ContainerDefinitions:
+#        - Name: !Ref ServiceName
+#          Cpu: !Ref ContainerCpu
+#          Memory: !Ref ContainerMemory
+#          Image: !Ref ImageUrl
+#          PortMappings:
+#            - ContainerPort: !Ref ContainerPort
+
+
+#  # The service. The service is a resource which allows you to run multiple
+#  # copies of a type of task, and gather up their logs and metrics, as well
+#  # as monitor the number of running tasks and replace any that have crashed
+#  Service:
+#    Type: AWS::ECS::Service
+#    DependsOn:
+
+
 
 Outputs:
   ECSClusterName:
