@@ -15,6 +15,24 @@
 	<name>aws-ms</name>
 	<description>aws-ms</description>
 
+	<profiles>
+		<profile>
+			<id>local</id>
+			<properties>
+				<spring.profiles.active>local</spring.profiles.active>
+			</properties>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+		</profile>
+		<profile>
+			<id>beanstalk</id>
+			<properties>
+				<spring.profiles.active>beanstalk</spring.profiles.active>
+			</properties>
+		</profile>
+	</profiles>
+
 	<properties>
 		<app.name>${project.artifactId}</app.name>
 		<app.version>${project.version}</app.version>
@@ -115,6 +133,12 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 	</build>
 
 </project>
