@@ -109,8 +109,23 @@ Resources:
                 Resource: '*'
 
 Outputs:
-  ECSClusterName:
+  ECSCluster:
     Description: The name of the ECS cluster
-    Value: !Ref 'ECSCluster'
+    Value: !Ref ECSCluster
     Export:
-      Name: !Join [ '-', [ !Ref 'AWS::StackName', 'WebServerECSCluster' ] ]
+      Name: !Sub ${AWS::StackName}-ECSCluster
+  ECSSecurityGroup:
+    Description: The name of the ECS cluster
+    Value: !Ref ECSSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-ECSSecurityGroup
+  ECSRole:
+    Description: The ARN of the ECS role
+    Value: !GetAtt ECSRole.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-ECSRole
+  ECSTaskExecutionRole:
+    Description: The ARN of the ECS role
+    Value: !GetAtt ECSTaskExecutionRole.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-ECSTaskExecutionRole
