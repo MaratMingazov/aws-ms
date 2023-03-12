@@ -1,7 +1,8 @@
 spring:
-
   application:
     name: @app.name@
+  profiles:
+    active: @spring.profiles.active@
   main:
     allow-bean-definition-overriding: true
 
@@ -34,6 +35,30 @@ info:
     java:
       version: @java.version@
   build-timestamp: @maven.build.timestamp@
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics, prometheus, beans"
+  metrics:
+    tags:
+      application: @app.name@
+    export:
+      prometheus:
+        enabled: true
+    web:
+      server:
+        request:
+          autotime:
+            enabled: true
+  endpoint:
+    endpoint:
+      health:
+        show-details: always
+        enabled: true
+      prometheus.enabled: true
+      info.enabled: true
 
 aws:
   access-key-id: ${ACCESS_KEY_ID}
