@@ -1,0 +1,179 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template deploys an ECS cluster
+
+Parameters:
+  ImportedVPCStack:
+    Type: String
+    Default: VPCStack
+
+  ImportedECSStack:
+    Type: String
+    Default: ECSStack
+
+  ImportedLoadBalancerStack:
+    Type: String
+    Default: LoadBalancerStack
+
+  ServiceName:
+    Type: String
+    Default: ECSService
+    Description: A name for the service
+
+  ImageUrl:
+    Type: String
+    Default: nginx
+    Description:  The url of a docker image that contains the application process that
+                  will handle the traffic for this service
+
+  HealthCheckPath:
+    Type: String
+    Default: /actuator/health
+    Description: Path to perform the healthcheck on each instance.
+
+  ContainerCpu:
+    Type: Number
+    Default: 256
+    Description: How much CPU to give the container. 1024 is 1 CPU
+
+  ContainerMemory:
+    Type: Number
+    Default: 512
+    Description: How much memory in megabytes to give the container
+
+  ContainerPort:
+    Type: Number
+    Default: 80
+    Description: What port number the application inside the docker container is binding to
+
+  DesiredCount:
+    Type: Number
+    Default: 2
+    Description: How many copies of the service task to run.
+
+  Path:
+    Type: String
+    Default: "*"
+    Description: A path on the public load balancer that this service
+      should be connected to. Use * to send all load balancer
+      traffic to this service.
+
+  Priority:
+    Type: Number
+    Default: 1
+    Description: The priority for the routing rule added to the load balancer.
+      This only applies if your have multiple services which have been
+      assigned to different paths on the load balancer.
+
+  Role:
+    Type: String
+    Default: ""
+    Description:  (Optional) An IAM role to give the service's containers if the code within needs to
+                  access other AWS resources like S3 buckets, DynamoDB tables, etc
+
+Conditions:
+  HasCustomRole: !Not [ !Equals [!Ref Role, ''] ]
+
+Resources:
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: !Ref HealthCheckPath
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 2
+      TargetType: ip
+      Name: !Ref ServiceName
+      Port: !Ref ContainerPort
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+      VpcId:
+        Fn::ImportValue: !Sub ${ImportedVPCStack}-VPC
+
+
+  # Create a rule on the load balancer for routing traffic to the target group
+  LoadBalancerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - TargetGroupArn: !Ref TargetGroup
+          Type: 'forward'
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - !Ref Path
+      ListenerArn:
+        Fn::ImportValue: !Sub ${ImportedLoadBalancerStack}-HTTPListener
+      Priority: !Ref Priority
+
+
+  # The task definition. This is a simple metadata description of what
+  # container to run, and what resource requirements it has.
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Ref ServiceName
+      Cpu: !Ref ContainerCpu
+      Memory: !Ref ContainerMemory
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn:
+        Fn::ImportValue: !Sub ${ImportedECSStack}-ECSTaskExecutionRole
+      TaskRoleArn:
+        Fn::If:
+          - HasCustomRole
+          - !Ref Role
+          - !Ref AWS::NoValue
+      ContainerDefinitions:
+        - Name: !Ref ServiceName
+          Cpu: !Ref ContainerCpu
+          Memory: !Ref ContainerMemory
+          Image: !Ref ImageUrl
+          PortMappings:
+            - ContainerPort: !Ref ContainerPort
+          LogConfiguration:
+            LogDriver: 'awslogs'
+            Options:
+              awslogs-group: !Ref ServiceName
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: !Ref ServiceName
+
+
+#  # The service. The service is a resource which allows you to run multiple
+#  # copies of a type of task, and gather up their logs and metrics, as well
+#  # as monitor the number of running tasks and replace any that have crashed
+  Service:
+    Type: AWS::ECS::Service
+    DependsOn: LoadBalancerRule
+    Properties:
+      ServiceName: !Ref ServiceName
+      Cluster:
+        Fn::ImportValue: !Sub ${ImportedECSStack}-ECSCluster
+      LaunchType: FARGATE
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+      DesiredCount: !Ref DesiredCount
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Fn::ImportValue: !Sub ${ImportedECSStack}-ECSSecurityGroup
+          Subnets:
+          - Fn::ImportValue: !Sub ${ImportedVPCStack}-PublicSubnet1
+          - Fn::ImportValue: !Sub ${ImportedVPCStack}-PublicSubnet2
+      TaskDefinition: !Ref TaskDefinition
+      LoadBalancers:
+        - ContainerName: !Ref ServiceName
+          ContainerPort: !Ref ContainerPort
+          TargetGroupArn: !Ref TargetGroup
+
+Outputs:
+  LoadBalancerRule:
+    Description: A reference to the created LoadBalancerRule
+    Value: !Ref LoadBalancerRule
+    Export:
+      Name: !Sub ${AWS::StackName}-LoadBalancerRule
