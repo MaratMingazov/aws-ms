@@ -8,9 +8,19 @@ aws cloudformation create-stack \
         ParameterKey=PublicSubnet1CIDR,ParameterValue=10.0.0.0/24 \
         ParameterKey=PublicSubnet2CIDR,ParameterValue=10.0.1.0/24 \
         ParameterKey=CIDR,ParameterValue=10.0.0.0/16
-
-
 aws cloudformation delete-stack --stack-name WebServerVPCStack
+
+
+aws cloudformation create-stack \
+    --stack-name LoadBalancerStack \
+    --template-url https://maratmingazovr.s3.amazonaws.com/LoadBalancer.template \
+    --region us-east-1 \
+    --parameters \
+        ParameterKey=ImportedVPCStackName,ParameterValue=VPCStack \
+        ParameterKey=LoadBalancerLogsBucketName,ParameterValue=maratmingazovr \
+        ParameterKey=KeyName,ParameterValue=keyPair
+aws cloudformation delete-stack --stack-name WebServerInstanceStack
+
 
 aws cloudformation create-stack \
     --stack-name InstanceStack \
@@ -20,13 +30,26 @@ aws cloudformation create-stack \
         ParameterKey=ImportedVPCStackName,ParameterValue=VPCStack \
         ParameterKey=InstanceType,ParameterValue=t2.micro \
         ParameterKey=KeyName,ParameterValue=keyPair
-
 aws cloudformation delete-stack --stack-name WebServerInstanceStack
 
+
 aws cloudformation create-stack \
-    --stack-name WebServerECSStack \
+    --stack-name ECSStack \
     --capabilities CAPABILITY_NAMED_IAM \
     --template-url https://maratmingazovr.s3.amazonaws.com/ECS.template \
-    --region us-east-1
+    --region us-east-1 \
+    --parameters \
+        ParameterKey=ImportedVPCStackName,ParameterValue=VPCStack
+aws cloudformation delete-stack --stack-name WebServerECSStack
 
+
+aws cloudformation create-stack \
+    --stack-name ServiceStack \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --template-url https://maratmingazovr.s3.amazonaws.com/Service.template \
+    --region us-east-1 \
+    --parameters \
+        ParameterKey=ImportedVPCStackName,ParameterValue=VPCStack \
+        ParameterKey=ImportedECSStack,ParameterValue=ECSStack \
+        ParameterKey=ImportedLoadBalancerStack,ParameterValue=LoadBalancerStack
 aws cloudformation delete-stack --stack-name WebServerECSStack
