@@ -1,6 +1,6 @@
 
 AWSTemplateFormatVersion: '2010-09-09'
-Description: This template deploys an ECS cluster
+Description: This template deploys an Service stack
 
 Parameters:
   ImportedVPCStack:
@@ -22,7 +22,7 @@ Parameters:
 
   ImageUrl:
     Type: String
-    Default: nginx
+    Default: registry-1.docker.io/maratmingazovr/aws-ms:v.1.0.0
     Description:  The url of a docker image that contains the application process that
                   will handle the traffic for this service
 
@@ -79,16 +79,16 @@ Resources:
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      HealthCheckIntervalSeconds: 30
+      HealthCheckIntervalSeconds: 200
       HealthCheckPath: !Ref HealthCheckPath
       HealthCheckProtocol: HTTP
-      HealthCheckTimeoutSeconds: 10
+      HealthCheckTimeoutSeconds: 120
       HealthyThresholdCount: 2
       TargetType: ip
       Name: !Ref ServiceName
       Port: !Ref ContainerPort
       Protocol: HTTP
-      UnhealthyThresholdCount: 2
+      UnhealthyThresholdCount: 10
       VpcId:
         Fn::ImportValue: !Sub ${ImportedVPCStack}-VPC
 
@@ -132,11 +132,19 @@ Resources:
           Cpu: !Ref ContainerCpu
           Memory: !Ref ContainerMemory
           Image: !Ref ImageUrl
+          HealthCheck:
+            Command:
+              - "CMD-SHELL"
+              - "curl -f http://localhost/actuator/health || exit 1"
+            Interval: 80
+            Retries: 5
+            Timeout: 60
           PortMappings:
             - ContainerPort: !Ref ContainerPort
           LogConfiguration:
             LogDriver: 'awslogs'
             Options:
+              # We have to create cloudWatch logsGroup with given SErviceName
               awslogs-group: !Ref ServiceName
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: !Ref ServiceName

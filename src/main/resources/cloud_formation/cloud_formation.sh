@@ -16,9 +16,8 @@ aws cloudformation create-stack \
     --template-url https://maratmingazovr.s3.amazonaws.com/LoadBalancer.template \
     --region us-east-1 \
     --parameters \
-        ParameterKey=ImportedVPCStackName,ParameterValue=VPCStack \
-        ParameterKey=LoadBalancerLogsBucketName,ParameterValue=maratmingazovr \
-        ParameterKey=KeyName,ParameterValue=keyPair
+        ParameterKey=ImportedVPCStack,ParameterValue=VPCStack \
+        ParameterKey=LoadBalancerLogsBucketName,ParameterValue=maratmingazovr
 aws cloudformation delete-stack --stack-name WebServerInstanceStack
 
 
@@ -39,7 +38,7 @@ aws cloudformation create-stack \
     --template-url https://maratmingazovr.s3.amazonaws.com/ECS.template \
     --region us-east-1 \
     --parameters \
-        ParameterKey=ImportedVPCStackName,ParameterValue=VPCStack
+        ParameterKey=ImportedVPCStack,ParameterValue=VPCStack
 aws cloudformation delete-stack --stack-name WebServerECSStack
 
 
@@ -49,7 +48,8 @@ aws cloudformation create-stack \
     --template-url https://maratmingazovr.s3.amazonaws.com/Service.template \
     --region us-east-1 \
     --parameters \
-        ParameterKey=ImportedVPCStackName,ParameterValue=VPCStack \
+        ParameterKey=ImportedVPCStack,ParameterValue=VPCStack \
         ParameterKey=ImportedECSStack,ParameterValue=ECSStack \
-        ParameterKey=ImportedLoadBalancerStack,ParameterValue=LoadBalancerStack
+        ParameterKey=ImportedLoadBalancerStack,ParameterValue=LoadBalancerStack \
+        ParameterKey=ImageUrl,ParameterValue=registry-1.docker.io/maratmingazovr/aws-ms:v.1.0.0
 aws cloudformation delete-stack --stack-name WebServerECSStack
