@@ -3,6 +3,7 @@ package maratmingazovr.aws_ms.entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.ToString;
 
 import javax.persistence.Column;
@@ -40,4 +41,10 @@ public class S3EventDAO {
     @CreationTimestamp
     @Column(name = "creation_date", columnDefinition = "TIMESTAMP(6)")
     private Instant creationDate;
+
+    public S3EventDAO(@NonNull String bucket,
+                      @NonNull String filename) {
+        this.bucket = bucket;
+        this.filename = filename;
+    }
 }
