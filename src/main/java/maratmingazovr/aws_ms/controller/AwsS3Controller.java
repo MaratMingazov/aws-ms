@@ -8,6 +8,7 @@ import maratmingazovr.aws_ms.dto.s3.AwsObjectResponseDTO;
 import maratmingazovr.aws_ms.dto.s3.CreateBucketRequestDTO;
 import maratmingazovr.aws_ms.dto.s3.FileDeleteRequestDTO;
 import maratmingazovr.aws_ms.dto.s3.FileUploadRequestDTO;
+import maratmingazovr.aws_ms.facade.S3Facade;
 import maratmingazovr.aws_ms.service.aws.FileService;
 import maratmingazovr.aws_ms.service.aws.S3Service;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,8 @@ import java.util.stream.Collectors;
 public class AwsS3Controller {
 
     private final S3Service s3Service;
+
+    private final S3Facade s3Facade;
 
     private final FileService fileService;
 
@@ -58,10 +61,10 @@ public class AwsS3Controller {
     public ResponseEntity<Void> uploadFile(@ModelAttribute FileUploadRequestDTO fileUploadRequestDTO) {
         val file = fileUploadRequestDTO.getFile();
         val inputStream = fileService.getInputStream(file);
-        val bucketName = fileUploadRequestDTO.getBucketName();
-        val fileName = file.getOriginalFilename();
-        val url = S3Service.createURLFromBucketNameAndFileName(bucketName, fileName);
-        s3Service.putObject(url, inputStream);
+        val bucket = fileUploadRequestDTO.getBucketName();
+        val filename = file.getOriginalFilename();
+        val url = s3Facade.uploadFile(bucket, filename, inputStream);
+
         log.info("AwsS3Controller: successfully have uploaded file = " + url);
         return ResponseEntity.ok().build();
     }

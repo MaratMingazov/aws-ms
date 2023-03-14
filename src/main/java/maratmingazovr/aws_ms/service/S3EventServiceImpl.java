@@ -9,11 +9,13 @@ import maratmingazovr.aws_ms.model.S3Event;
 import maratmingazovr.aws_ms.repository.S3EventRepository;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Log4j2
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class S3EventServiceImpl implements S3EventService{
 
@@ -28,7 +30,7 @@ public class S3EventServiceImpl implements S3EventService{
         val s3EventDAOsaved = s3EventRepository.save(s3EventDAO);
         val s3Event = new S3Event(s3EventDAOsaved);
 
-        log.info("S3EventService: successfully saved s3Event = " + s3Event);
+        log.debug("S3EventService: successfully saved s3Event = " + s3Event);
         return s3Event;
     }
 
@@ -39,7 +41,7 @@ public class S3EventServiceImpl implements S3EventService{
                                       .map(S3Event::new)
                                       .collect(Collectors.toList());
 
-        log.info("S3EventService: successfully returned s3Events, size = " + events.size());
+        log.debug("S3EventService: successfully returned s3Events, size = " + events.size());
         return events;
     }
 }
