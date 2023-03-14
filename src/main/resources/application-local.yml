@@ -1,2 +1,18 @@
 server:
   port: 80
+
+spring:
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/aws_ms_db
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: password
+
+  liquibase:
+    change-log: classpath:/db/changelog/changelog-master.yml
+    url: jdbc:postgresql://localhost:5432/aws_ms_db
+    user: postgres
+    password: password
+    enabled: true
+    contexts: local

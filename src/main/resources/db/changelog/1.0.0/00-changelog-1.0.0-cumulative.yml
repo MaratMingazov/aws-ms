@@ -1,0 +1,6 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/1.0.0/00-changelog-1.0.0-cumulative.yml
+
+  - include:
+      file: 01-create-s3-event-table.yml
+      relativeToChangelogFile: true

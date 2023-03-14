@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/1.0.0/01-create-s3-event-table.yml
+
+  - changeSet:
+      id: create_s3_event_table
+      author: maratmingazov
+      changes:
+        - createTable:
+            tableName: s3_event
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: s3_event_pkey
+              - column:
+                  name: bucket
+                  type: VARCHAR
+                  constraints:
+                    nullable: false
+                    unique: false
+              - column:
+                  name: filename
+                  type: VARCHAR
+                  constraints:
+                    nullable: false
+              - column:
+                  name: creation_date
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropTable:
+            tableName: s3_event
