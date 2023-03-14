@@ -6,17 +6,27 @@ import lombok.Value;
 import maratmingazovr.aws_ms.model.S3Event;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.List;
+import java.time.Instant;
 
 @Value
 @Validated
 public class S3EventResponseDTO {
 
     @NonNull
-    @JsonProperty("events")
-    List<S3Event> events;
+    @JsonProperty("bucket")
+    String bucket;
 
-    public S3EventResponseDTO (@NonNull List<S3Event> events) {
-        this.events = events;
+    @NonNull
+    @JsonProperty("filename")
+    String filename;
+
+    @NonNull
+    @JsonProperty("creationDate")
+    Instant creationDate;
+
+    public S3EventResponseDTO(@NonNull S3Event s3Event) {
+        this.bucket = s3Event.getBucket();
+        this.filename = s3Event.getFilename();
+        this.creationDate = s3Event.getCreationDate();
     }
 }
