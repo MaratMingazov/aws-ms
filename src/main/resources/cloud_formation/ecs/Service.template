@@ -15,6 +15,11 @@ Parameters:
     Type: String
     Default: LoadBalancerStack
 
+  ImportedDBStack:
+    Type: String
+    Description: The name of the database stack with the database this service should connect to.
+    Default: DBStack
+
   ServiceName:
     Type: String
     Default: ECSService
@@ -132,6 +137,28 @@ Resources:
           Cpu: !Ref ContainerCpu
           Memory: !Ref ContainerMemory
           Image: !Ref ImageUrl
+          Environment:
+            - Name: DB_URL
+              Value: !Join
+                - ''
+                - - 'jdbc:postgresql://'
+                  - Fn::ImportValue: !Sub ${ImportedDBStack}-EndpointAddress
+                  - ':'
+                  - Fn::ImportValue: !Sub ${ImportedDBStack}-EndpointPort
+                  - '/'
+                  - Fn::ImportValue: !Sub ${ImportedDBStack}-DBName
+            - Name: DB_USERNAME
+              Value: !Join
+                - ''
+                - - '{{resolve:secretsmanager:'
+                  - Fn::ImportValue: !Sub ${ImportedDBStack}-Secret
+                  - ':SecretString:username}}'
+            - Name: DB_PASSWORD
+              Value: !Join
+                - ''
+                - - '{{resolve:secretsmanager:'
+                  - Fn::ImportValue: !Sub ${ImportedDBStack}-Secret
+                  - ':SecretString:password}}'
           HealthCheck:
             Command:
               - "CMD-SHELL"

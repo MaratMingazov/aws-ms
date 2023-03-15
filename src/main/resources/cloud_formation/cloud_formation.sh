@@ -8,7 +8,7 @@ aws cloudformation create-stack \
         ParameterKey=PublicSubnet1CIDR,ParameterValue=10.0.0.0/24 \
         ParameterKey=PublicSubnet2CIDR,ParameterValue=10.0.1.0/24 \
         ParameterKey=CIDR,ParameterValue=10.0.0.0/16
-aws cloudformation delete-stack --stack-name WebServerVPCStack
+aws cloudformation delete-stack --stack-name VPCStack
 
 
 aws cloudformation create-stack \
@@ -18,7 +18,7 @@ aws cloudformation create-stack \
     --parameters \
         ParameterKey=ImportedVPCStack,ParameterValue=VPCStack \
         ParameterKey=LoadBalancerLogsBucketName,ParameterValue=maratmingazovr
-aws cloudformation delete-stack --stack-name WebServerInstanceStack
+aws cloudformation delete-stack --stack-name LoadBalancerStack
 
 
 aws cloudformation create-stack \
@@ -29,7 +29,16 @@ aws cloudformation create-stack \
         ParameterKey=ImportedVPCStackName,ParameterValue=VPCStack \
         ParameterKey=InstanceType,ParameterValue=t2.micro \
         ParameterKey=KeyName,ParameterValue=keyPair
-aws cloudformation delete-stack --stack-name WebServerInstanceStack
+aws cloudformation delete-stack --stack-name InstanceStack
+
+aws cloudformation create-stack \
+    --stack-name DBStack \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --template-url https://maratmingazovr.s3.amazonaws.com/DB.template \
+    --region us-east-1 \
+    --parameters \
+        ParameterKey=ImportedVPCStack,ParameterValue=VPCStack
+aws cloudformation delete-stack --stack-name DBStack
 
 
 aws cloudformation create-stack \
@@ -39,7 +48,7 @@ aws cloudformation create-stack \
     --region us-east-1 \
     --parameters \
         ParameterKey=ImportedVPCStack,ParameterValue=VPCStack
-aws cloudformation delete-stack --stack-name WebServerECSStack
+aws cloudformation delete-stack --stack-name ECSStack
 
 
 aws cloudformation create-stack \
@@ -51,5 +60,6 @@ aws cloudformation create-stack \
         ParameterKey=ImportedVPCStack,ParameterValue=VPCStack \
         ParameterKey=ImportedECSStack,ParameterValue=ECSStack \
         ParameterKey=ImportedLoadBalancerStack,ParameterValue=LoadBalancerStack \
+        ParameterKey=ImportedDBStack,ParameterValue=DBStack \
         ParameterKey=ImageUrl,ParameterValue=registry-1.docker.io/maratmingazovr/aws-ms:v.1.0.0
-aws cloudformation delete-stack --stack-name WebServerECSStack
+aws cloudformation delete-stack --stack-name ServiceStack

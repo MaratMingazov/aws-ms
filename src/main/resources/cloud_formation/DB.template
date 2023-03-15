@@ -1,0 +1,91 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template deploys DB Instance
+
+Parameters:
+  ImportedVPCStack:
+    Type: String
+    Default: VPCStack
+
+  DBInstanceClass:
+    Type: String
+    Default: 'db.t2.micro'
+
+  DBName:
+    Type: String
+    Description: The name of the database that is created within the PostgreSQL instance.
+
+  DBUsername:
+    Type: String
+    Description: The master user name for the PostgreSQL instance.
+
+
+Resources:
+
+  Secret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Ref DBUsername
+      GenerateSecretString:
+        SecretStringTemplate: !Join [ '', [ '{"username": "', !Ref DBUsername ,'"}' ] ]
+        GenerateStringKey: 'password'
+        PasswordLength: 32
+        ExcludeCharacters: '"@/\'
+
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Access to the RDS instance
+      VpcId: !Sub ${ImportedVPCStack}-VPC
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for the RDS instance
+      DBSubnetGroupName: !Sub ${AWS::StackName}-DBSubnetGroup
+      SubnetIds:
+        - Fn::ImportValue: !Sub ${ImportedVPCStack}-PrivateSubnet1
+        - Fn::ImportValue: !Sub ${ImportedVPCStack}-PrivateSubnet2
+
+  PostgresInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: postgres
+      EngineVersion: 14.6
+      AllocatedStorage: 20
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      DBInstanceClass: !Ref DBInstanceClass
+      DBName: !Ref DBName
+      MasterUsername: !Ref DBUsername
+      PubliclyAccessible: false
+      VPCSecurityGroups: !Ref DBSecurityGroup
+      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref Secret, ':SecretString:password}}' ]]
+
+  SecretRDSInstanceAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref Secret
+      TargetId: !Ref PostgresInstance
+      TargetType: AWS::RDS::DBInstance
+
+Outputs:
+  EndpointAddress:
+    Description: Address of the RDS endpoint.
+    Value: !GetAtt PostgresInstance.Endpoint.Address
+    Export:
+      Name: !Sub ${AWS::StackName}-EndpointAddress
+  EndpointPort:
+    Description: Port of the RDS endpoint.
+    Value: !GetAtt PostgresInstance.Endpoint.Port
+    Export:
+      Name: !Sub ${AWS::StackName}-EndpointPort
+  DBName:
+    Description: The name of the database that is created within the PostgreSQL instance.
+    Value: !Ref DBName
+    Export:
+      Name: !Sub ${AWS::StackName}-DBName
+  Secret:
+    Description: Reference to the secret containing the password to the database.
+    Value: !Ref 'Secret'
+    Export:
+      Name: !Sub ${AWS::StackName}-Secret
