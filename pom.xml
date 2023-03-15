@@ -31,6 +31,12 @@
 				<spring.profiles.active>beanstalk</spring.profiles.active>
 			</properties>
 		</profile>
+		<profile>
+			<id>ecs</id>
+			<properties>
+				<spring.profiles.active>ecs</spring.profiles.active>
+			</properties>
+		</profile>
 	</profiles>
 
 	<properties>

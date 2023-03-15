@@ -1,0 +1,18 @@
+server:
+  port: 80
+
+spring:
+
+  datasource:
+    url: ${DB_URL}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  liquibase:
+    change-log: classpath:/db/changelog/changelog-master.yml
+    url: ${DB_URL}
+    user: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    enabled: true
+    contexts: ecs
