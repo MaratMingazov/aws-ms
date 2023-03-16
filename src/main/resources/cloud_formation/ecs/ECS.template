@@ -14,10 +14,10 @@ Resources:
   #The security group allows inbound traffic from the load balancer (or, more specifically,
   # from everything in the PublicLoadBalancerSecurityGroup) and
   # inbound traffic from everything in the same security group so that our Docker containers can later talk to each other.
-  ECSCluster:
+  Cluster:
     Type: AWS::ECS::Cluster
 
-  ECSSecurityGroup:
+  SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: 'Access to ECS containers'
@@ -31,7 +31,7 @@ Resources:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       Description: Ingress from the public LoadBalancer
-      GroupId: !Ref ECSSecurityGroup
+      GroupId: !Ref SecurityGroup
       IpProtocol: -1
       SourceSecurityGroupId:
         Fn::ImportValue: !Sub ${ImportedVPCStack}-SecurityGroup
@@ -40,9 +40,9 @@ Resources:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       Description: Ingress from other containers in the same security group
-      GroupId: !Ref ECSSecurityGroup
+      GroupId: !Ref SecurityGroup
       IpProtocol: -1
-      SourceSecurityGroupId: !Ref ECSSecurityGroup
+      SourceSecurityGroupId: !Ref SecurityGroup
 
 
   # This is an IAM role which authorizes ECS to manage resources on your
@@ -85,7 +85,7 @@ Resources:
                 Resource: '*'
 
   # This is a role which is used by the ECS tasks themselves.
-  ECSTaskExecutionRole:
+  TaskExecutionRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -113,23 +113,23 @@ Resources:
                 Resource: '*'
 
 Outputs:
-  ECSCluster:
+  Cluster:
     Description: The name of the ECS cluster
-    Value: !Ref ECSCluster
+    Value: !Ref Cluster
     Export:
-      Name: !Sub ${AWS::StackName}-ECSCluster
-  ECSSecurityGroup:
+      Name: !Sub ${AWS::StackName}-Cluster
+  SecurityGroup:
     Description: The name of the ECS cluster
-    Value: !Ref ECSSecurityGroup
+    Value: !Ref SecurityGroup
     Export:
-      Name: !Sub ${AWS::StackName}-ECSSecurityGroup
+      Name: !Sub ${AWS::StackName}-SecurityGroup
   ECSRole:
     Description: The ARN of the ECS role
     Value: !GetAtt ECSRole.Arn
     Export:
       Name: !Sub ${AWS::StackName}-ECSRole
-  ECSTaskExecutionRole:
+  TaskExecutionRole:
     Description: The ARN of the ECS role
-    Value: !GetAtt ECSTaskExecutionRole.Arn
+    Value: !GetAtt TaskExecutionRole.Arn
     Export:
-      Name: !Sub ${AWS::StackName}-ECSTaskExecutionRole
+      Name: !Sub ${AWS::StackName}-TaskExecutionRole

@@ -55,7 +55,7 @@ Resources:
       GroupId: !Ref DBSecurityGroup
       IpProtocol: -1
       SourceSecurityGroupId:
-        Fn::ImportValue: !Sub ${ImportedECSStack}-ECSSecurityGroup
+        Fn::ImportValue: !Sub ${ImportedECSStack}-SecurityGroup
 
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup

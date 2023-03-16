@@ -126,7 +126,7 @@ Resources:
       RequiresCompatibilities:
         - FARGATE
       ExecutionRoleArn:
-        Fn::ImportValue: !Sub ${ImportedECSStack}-ECSTaskExecutionRole
+        Fn::ImportValue: !Sub ${ImportedECSStack}-TaskExecutionRole
       TaskRoleArn:
         Fn::If:
           - HasCustomRole
@@ -186,7 +186,7 @@ Resources:
     Properties:
       ServiceName: !Ref ServiceName
       Cluster:
-        Fn::ImportValue: !Sub ${ImportedECSStack}-ECSCluster
+        Fn::ImportValue: !Sub ${ImportedECSStack}-Cluster
       LaunchType: FARGATE
       DeploymentConfiguration:
         MaximumPercent: 200
@@ -196,7 +196,7 @@ Resources:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
           SecurityGroups:
-            - Fn::ImportValue: !Sub ${ImportedECSStack}-ECSSecurityGroup
+            - Fn::ImportValue: !Sub ${ImportedECSStack}-SecurityGroup
           Subnets:
           - Fn::ImportValue: !Sub ${ImportedVPCStack}-PublicSubnet1
           - Fn::ImportValue: !Sub ${ImportedVPCStack}-PublicSubnet2
