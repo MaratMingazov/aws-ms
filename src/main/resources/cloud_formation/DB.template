@@ -61,7 +61,8 @@ Resources:
       DBName: !Ref DBName
       MasterUsername: !Ref DBUsername
       PubliclyAccessible: false
-      VPCSecurityGroups: !Ref DBSecurityGroup
+      VPCSecurityGroups:
+        - !Ref DBSecurityGroup
       MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref Secret, ':SecretString:password}}' ]]
 
   SecretRDSInstanceAttachment:
