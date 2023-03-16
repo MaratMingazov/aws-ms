@@ -14,10 +14,12 @@ Parameters:
   DBName:
     Type: String
     Description: The name of the database that is created within the PostgreSQL instance.
+    Default: 'aws_ms_db'
 
   DBUsername:
     Type: String
     Description: The master user name for the PostgreSQL instance.
+    Default: postgres
 
 
 Resources:
@@ -36,7 +38,8 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Access to the RDS instance
-      VpcId: !Sub ${ImportedVPCStack}-VPC
+      VpcId:
+        Fn::ImportValue: !Sub ${ImportedVPCStack}-VPC
 
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup

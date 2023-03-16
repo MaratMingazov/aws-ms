@@ -1,6 +1,6 @@
 
 AWSTemplateFormatVersion: '2010-09-09'
-Description: This template deploys an Instance
+Description: This template deploys a LoadBalancer Stack
 
 Parameters:
   ImportedVPCStack:

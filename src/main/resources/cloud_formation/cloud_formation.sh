@@ -26,7 +26,7 @@ aws cloudformation create-stack \
     --template-url https://maratmingazovr.s3.amazonaws.com/Instance.template \
     --region us-east-1 \
     --parameters \
-        ParameterKey=ImportedVPCStackName,ParameterValue=VPCStack \
+        ParameterKey=ImportedVPCStack,ParameterValue=VPCStack \
         ParameterKey=InstanceType,ParameterValue=t2.micro \
         ParameterKey=KeyName,ParameterValue=keyPair
 aws cloudformation delete-stack --stack-name InstanceStack
@@ -37,7 +37,9 @@ aws cloudformation create-stack \
     --template-url https://maratmingazovr.s3.amazonaws.com/DB.template \
     --region us-east-1 \
     --parameters \
-        ParameterKey=ImportedVPCStack,ParameterValue=VPCStack
+        ParameterKey=ImportedVPCStack,ParameterValue=VPCStack \
+        ParameterKey=DBName,,ParameterValue=aws_ms_db \
+        ParameterKey=DBUsername,,ParameterValue=postgres
 aws cloudformation delete-stack --stack-name DBStack
 
 

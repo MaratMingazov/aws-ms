@@ -85,38 +85,38 @@ Resources:
         - Key: Name
           Value: !Sub ${AWS::StackName}-PrivateSubnet2
 
-  NatGateway1EIP:
-    Type: AWS::EC2::EIP
-    DependsOn: InternetGatewayAttachment
-    Properties:
-      Domain: vpc
-      Tags:
-        - Key: Name
-          Value: !Sub ${AWS::StackName}-NatGateway1EIP
-  NatGateway2EIP:
-    Type: AWS::EC2::EIP
-    DependsOn: InternetGatewayAttachment
-    Properties:
-      Domain: vpc
-      Tags:
-        - Key: Name
-          Value: !Sub ${AWS::StackName}-NatGateway2EIP
-  NatGateway1:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NatGateway1EIP.AllocationId
-      SubnetId: !Ref PublicSubnet1
-      Tags:
-        - Key: Name
-          Value: !Sub ${AWS::StackName}-NatGateway1
-  NatGateway2:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NatGateway2EIP.AllocationId
-      SubnetId: !Ref PublicSubnet2
-      Tags:
-        - Key: Name
-          Value: !Sub ${AWS::StackName}-NatGateway2
+#  NatGateway1EIP:
+#    Type: AWS::EC2::EIP
+#    DependsOn: InternetGatewayAttachment
+#    Properties:
+#      Domain: vpc
+#      Tags:
+#        - Key: Name
+#          Value: !Sub ${AWS::StackName}-NatGateway1EIP
+#  NatGateway2EIP:
+#    Type: AWS::EC2::EIP
+#    DependsOn: InternetGatewayAttachment
+#    Properties:
+#      Domain: vpc
+#      Tags:
+#        - Key: Name
+#          Value: !Sub ${AWS::StackName}-NatGateway2EIP
+#  NatGateway1:
+#    Type: AWS::EC2::NatGateway
+#    Properties:
+#      AllocationId: !GetAtt NatGateway1EIP.AllocationId
+#      SubnetId: !Ref PublicSubnet1
+#      Tags:
+#        - Key: Name
+#          Value: !Sub ${AWS::StackName}-NatGateway1
+#  NatGateway2:
+#    Type: AWS::EC2::NatGateway
+#    Properties:
+#      AllocationId: !GetAtt NatGateway2EIP.AllocationId
+#      SubnetId: !Ref PublicSubnet2
+#      Tags:
+#        - Key: Name
+#          Value: !Sub ${AWS::StackName}-NatGateway2
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -150,12 +150,12 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${AWS::StackName}-PrivateRouteTable1
-  DefaultPrivateRoute1:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable1
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway1
+#  DefaultPrivateRoute1:
+#    Type: AWS::EC2::Route
+#    Properties:
+#      RouteTableId: !Ref PrivateRouteTable1
+#      DestinationCidrBlock: 0.0.0.0/0
+#      NatGatewayId: !Ref NatGateway1
   PrivateSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -169,12 +169,12 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${AWS::StackName}-PrivateRouteTable2
-  DefaultPrivateRoute2:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable2
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway2
+#  DefaultPrivateRoute2:
+#    Type: AWS::EC2::Route
+#    Properties:
+#      RouteTableId: !Ref PrivateRouteTable2
+#      DestinationCidrBlock: 0.0.0.0/0
+#      NatGatewayId: !Ref NatGateway2
   PrivateSubnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
