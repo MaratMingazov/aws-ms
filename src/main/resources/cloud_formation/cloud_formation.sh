@@ -32,18 +32,6 @@ aws cloudformation create-stack \
 aws cloudformation delete-stack --stack-name InstanceStack
 
 aws cloudformation create-stack \
-    --stack-name DBStack \
-    --capabilities CAPABILITY_NAMED_IAM \
-    --template-url https://maratmingazovr.s3.amazonaws.com/DB.template \
-    --region us-east-1 \
-    --parameters \
-        ParameterKey=ImportedVPCStack,ParameterValue=VPCStack \
-        ParameterKey=DBName,,ParameterValue=aws_ms_db \
-        ParameterKey=DBUsername,,ParameterValue=postgres
-aws cloudformation delete-stack --stack-name DBStack
-
-
-aws cloudformation create-stack \
     --stack-name ECSStack \
     --capabilities CAPABILITY_NAMED_IAM \
     --template-url https://maratmingazovr.s3.amazonaws.com/ECS.template \
@@ -51,6 +39,18 @@ aws cloudformation create-stack \
     --parameters \
         ParameterKey=ImportedVPCStack,ParameterValue=VPCStack
 aws cloudformation delete-stack --stack-name ECSStack
+
+aws cloudformation create-stack \
+    --stack-name DBStack \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --template-url https://maratmingazovr.s3.amazonaws.com/DB.template \
+    --region us-east-1 \
+    --parameters \
+        ParameterKey=ImportedVPCStack,ParameterValue=VPCStack \
+        ParameterKey=DBName,,ParameterValue=aws_ms_db \
+        ParameterKey=ImportedECSStack,ParameterValue=ECSStack \
+        ParameterKey=DBUsername,,ParameterValue=postgres
+aws cloudformation delete-stack --stack-name DBStack
 
 
 aws cloudformation create-stack \

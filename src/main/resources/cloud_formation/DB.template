@@ -7,9 +7,13 @@ Parameters:
     Type: String
     Default: VPCStack
 
+  ImportedECSStack:
+    Type: String
+    Default: ECSStack
+
   DBInstanceClass:
     Type: String
-    Default: 'db.t2.micro'
+    Default: 'db.t3.micro'
 
   DBName:
     Type: String
@@ -40,6 +44,18 @@ Resources:
       GroupDescription: Access to the RDS instance
       VpcId:
         Fn::ImportValue: !Sub ${ImportedVPCStack}-VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-SecurityGroup
+
+  DBSecurityGroupIngressFromECS:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Ingress from the ECS containers to the RDS instance
+      GroupId: !Ref DBSecurityGroup
+      IpProtocol: -1
+      SourceSecurityGroupId:
+        Fn::ImportValue: !Sub ${ImportedECSStack}-ECSSecurityGroup
 
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup

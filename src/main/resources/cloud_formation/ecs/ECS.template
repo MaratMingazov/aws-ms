@@ -23,6 +23,9 @@ Resources:
       GroupDescription: 'Access to ECS containers'
       VpcId:
         Fn::ImportValue: !Sub ${ImportedVPCStack}-VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-SecurityGroup
 
   ECSSecurityGroupIngressFromPublicALB:
     Type: AWS::EC2::SecurityGroupIngress
