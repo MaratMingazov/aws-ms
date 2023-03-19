@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Log4j2
 @RestController
 @AllArgsConstructor
-@RequestMapping("/aws/buckets")
+@RequestMapping("/aws/s3")
 public class AwsS3Controller {
 
     private final S3Service s3Service;
