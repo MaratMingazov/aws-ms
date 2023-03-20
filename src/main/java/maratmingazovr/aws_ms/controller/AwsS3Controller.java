@@ -80,7 +80,7 @@ public class AwsS3Controller {
 
     @DeleteMapping("/files")
     public ResponseEntity<Void> deleteFile(@RequestBody FileDeleteRequestDTO request) {
-        val url = S3Service.createURLFromBucketNameAndFileName(request.getBucketName(), request.getFileName());
+        val url = s3Service.createURLFromBucketNameAndFileName(request.getBucketName(), request.getFileName());
         s3Service.deleteObject(url);
         log.info("AwsS3Controller: successfully have deleted file = " + url);
         return ResponseEntity.ok().build();

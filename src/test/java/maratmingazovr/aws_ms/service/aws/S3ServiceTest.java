@@ -11,7 +11,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(SpringExtension.class)
-@Import(S3ServiceImpl.class)
+@Import(S3Service.class)
 public class S3ServiceTest {
 
     @MockBean
@@ -22,11 +22,11 @@ public class S3ServiceTest {
 
     @Test
     void getBucketFromUrlReturnCorrectBucketName() {
-        assertEquals("bucket-name",S3Service.getBucketFromUrl("s3://bucket-name/path/to/file.txt"));
+        assertEquals("bucket-name",s3Service.getBucketFromUrl("s3://bucket-name/path/to/file.txt"));
     }
 
     @Test
     void getPathFromUrlReturnCorrectBucketName() {
-        assertEquals("path/to/file.txt",S3Service.getPathFromUrl("s3://bucket-name/path/to/file.txt"));
+        assertEquals("path/to/file.txt",s3Service.getPathFromUrl("s3://bucket-name/path/to/file.txt"));
     }
 }
