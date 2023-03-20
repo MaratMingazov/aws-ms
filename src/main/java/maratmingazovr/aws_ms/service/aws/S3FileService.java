@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @Log4j2
 @Service
 @RequiredArgsConstructor
-public class S3Service {
+public class S3FileService {
 
     private final S3Client s3Client;
 
