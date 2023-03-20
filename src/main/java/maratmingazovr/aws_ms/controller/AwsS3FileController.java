@@ -55,6 +55,12 @@ public class AwsS3FileController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/read")
+    public ResponseEntity<Void> readFile(@RequestParam String bucketName, @RequestParam String fileName) {
+        s3FileService.readFile(bucketName, fileName);
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping
     public ResponseEntity<Void> deleteFile(@RequestBody FileDeleteRequestDTO request) {
         val url = s3FileService.deleteFile(request.getBucketName(), request.getFileName());
