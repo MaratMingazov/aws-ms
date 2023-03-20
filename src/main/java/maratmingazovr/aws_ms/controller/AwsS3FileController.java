@@ -3,9 +3,7 @@ package maratmingazovr.aws_ms.controller;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import maratmingazovr.aws_ms.dto.s3.AwsBucketResponseDTO;
 import maratmingazovr.aws_ms.dto.s3.AwsObjectResponseDTO;
-import maratmingazovr.aws_ms.dto.s3.CreateBucketRequestDTO;
 import maratmingazovr.aws_ms.dto.s3.FileDeleteRequestDTO;
 import maratmingazovr.aws_ms.dto.s3.FileUploadRequestDTO;
 import maratmingazovr.aws_ms.facade.S3Facade;
@@ -27,8 +25,8 @@ import java.util.stream.Collectors;
 @Log4j2
 @RestController
 @AllArgsConstructor
-@RequestMapping("/aws/s3")
-public class AwsS3Controller {
+@RequestMapping("/aws/s3/file")
+public class AwsS3FileController {
 
     private final S3FileService s3FileService;
 
@@ -37,27 +35,6 @@ public class AwsS3Controller {
     private final FileService fileService;
 
     @PostMapping
-    public ResponseEntity<Void> createBucket(@RequestBody CreateBucketRequestDTO request) {
-        s3FileService.createBucket(request.getBucketName());
-        return ResponseEntity.ok().build();
-    }
-
-    @DeleteMapping
-    public ResponseEntity<Void> deleteBucket(@RequestParam String bucketName) {
-        s3FileService.deleteBucket(bucketName);
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping
-    public ResponseEntity<List<AwsBucketResponseDTO>> getBuckets() {
-        val buckets = s3FileService.getBuckets();
-        val bucketsDto = buckets.stream()
-                .map(AwsBucketResponseDTO::new)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(bucketsDto);
-    }
-
-    @PostMapping("/files")
     public ResponseEntity<Void> uploadFile(@ModelAttribute FileUploadRequestDTO fileUploadRequestDTO) {
         val file = fileUploadRequestDTO.getFile();
         val inputStream = fileService.getInputStream(file);
@@ -69,7 +46,7 @@ public class AwsS3Controller {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/files")
+    @GetMapping
     public ResponseEntity<List<AwsObjectResponseDTO>> getFiles(@RequestParam String bucketName) {
         val awsObjects = s3FileService.getBucketFiles(bucketName);
         val response = awsObjects.stream()
@@ -78,7 +55,7 @@ public class AwsS3Controller {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/files")
+    @DeleteMapping
     public ResponseEntity<Void> deleteFile(@RequestBody FileDeleteRequestDTO request) {
         val url = s3FileService.deleteFile(request.getBucketName(), request.getFileName());
         log.info("AwsS3Controller: successfully have deleted file = " + url);
