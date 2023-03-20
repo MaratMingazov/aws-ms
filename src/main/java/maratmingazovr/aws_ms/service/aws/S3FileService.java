@@ -31,14 +31,17 @@ import software.amazon.awssdk.services.s3.model.SelectObjectContentResponse;
 import software.amazon.awssdk.services.s3.model.SelectObjectContentResponseHandler;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tagging;
+import software.amazon.awssdk.services.s3.model.selectobjectcontenteventstream.DefaultRecords;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -65,11 +68,23 @@ public class S3FileService {
         }
     }
 
-    public void readFile(@NonNull String bucketName,
+    @NonNull
+    public String readFile(@NonNull String bucketName,
                          @NonNull String fileName) {
         val query = getQuery();
-        val request = generateJsonRequest(bucketName, fileName, query);
-        queryS3(request);
+        val handler = new ResponseHandler();
+        val selected = queryS3(bucketName, fileName, query, handler);
+        selected.join();
+
+        RecordsEvent response = (RecordsEvent) handler.receivedEvents
+                .stream()
+                .filter(e -> e.sdkEventType() == SelectObjectContentEventStream.EventType.RECORDS)
+                .findFirst()
+                .orElse(null);
+
+        return response == null
+                ? ""
+                : response.payload().asUtf8String();
     }
 
     @NonNull
@@ -203,9 +218,10 @@ public class S3FileService {
     }
 
     @NonNull
-    private SelectObjectContentRequest generateJsonRequest(@NonNull String bucketName,
-                                                           @NonNull String fileName,
-                                                           @NonNull String query) {
+    private CompletableFuture<Void> queryS3(@NonNull String bucketName,
+                                            @NonNull String fileName,
+                                            @NonNull String query,
+                                            @NonNull SelectObjectContentResponseHandler handler) {
 
         val inputSerialization = InputSerialization
                 .builder()
@@ -218,7 +234,7 @@ public class S3FileService {
                 .json(JSONOutput.builder().build())
                 .build();
 
-        return SelectObjectContentRequest
+        val request = SelectObjectContentRequest
                 .builder()
                 .bucket(bucketName)
                 .key(fileName)
@@ -227,25 +243,8 @@ public class S3FileService {
                 .inputSerialization(inputSerialization)
                 .outputSerialization(outputSerialization)
                 .build();
-    }
 
-
-    private void queryS3(@NonNull SelectObjectContentRequest request) {
-
-        val handler = new ResponseHandler();
-
-        try {
-            s3AsyncClient.selectObjectContent(request, handler).get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        }
-
-        RecordsEvent response = (RecordsEvent) handler.receivedEvents
-                .stream()
-                .filter(e -> e.sdkEventType() == SelectObjectContentEventStream.EventType.RECORDS)
-                .findFirst()
-                .orElse(null);
-        System.out.println(response.payload().asUtf8String());
+        return s3AsyncClient.selectObjectContent(request, handler);
     }
 
     private static class ResponseHandler implements SelectObjectContentResponseHandler {
