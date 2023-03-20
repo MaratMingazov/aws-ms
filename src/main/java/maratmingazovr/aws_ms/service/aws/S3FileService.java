@@ -19,9 +19,11 @@ import software.amazon.awssdk.services.s3.model.ExpressionType;
 import software.amazon.awssdk.services.s3.model.InputSerialization;
 import software.amazon.awssdk.services.s3.model.JSONInput;
 import software.amazon.awssdk.services.s3.model.JSONOutput;
+import software.amazon.awssdk.services.s3.model.JSONType;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.OutputSerialization;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.RecordsEvent;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.model.SelectObjectContentEventStream;
 import software.amazon.awssdk.services.s3.model.SelectObjectContentRequest;
@@ -34,8 +36,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -61,7 +65,6 @@ public class S3FileService {
         }
     }
 
-    @NonNull
     public void readFile(@NonNull String bucketName,
                          @NonNull String fileName) {
         val query = getQuery();
@@ -196,7 +199,7 @@ public class S3FileService {
 
     @NonNull
     private String getQuery() {
-        return "Select * from s3object s";
+        return "select * from S3Object s";
     }
 
     @NonNull
@@ -206,7 +209,7 @@ public class S3FileService {
 
         val inputSerialization = InputSerialization
                 .builder()
-                .json(JSONInput.builder().type("Document").build())
+                .json(JSONInput.builder().type(JSONType.DOCUMENT).build())
                 .compressionType(CompressionType.NONE)
                 .build();
 
@@ -226,31 +229,51 @@ public class S3FileService {
                 .build();
     }
 
-    @NonNull
+
     private void queryS3(@NonNull SelectObjectContentRequest request) {
 
-        SelectObjectContentResponseHandler handler = new SelectObjectContentResponseHandler() {
-            @Override
-            public void responseReceived(SelectObjectContentResponse selectObjectContentResponse) {
-                log.info("responseReceived");
-            }
+        val handler = new ResponseHandler();
 
-            @Override
-            public void onEventStream(SdkPublisher<SelectObjectContentEventStream> sdkPublisher) {
-                log.info("onEventStream");
-            }
+        try {
+            s3AsyncClient.selectObjectContent(request, handler).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
 
-            @Override
-            public void exceptionOccurred(Throwable throwable) {
-                log.info("exceptionOccurred");
-            }
+        RecordsEvent response = (RecordsEvent) handler.receivedEvents
+                .stream()
+                .filter(e -> e.sdkEventType() == SelectObjectContentEventStream.EventType.RECORDS)
+                .findFirst()
+                .orElse(null);
+        System.out.println(response.payload().asUtf8String());
+    }
 
-            @Override
-            public void complete() {
-                log.info("complete");
-            }
-        };
+    private static class ResponseHandler implements SelectObjectContentResponseHandler {
+        private SelectObjectContentResponse response;
+        private List<SelectObjectContentEventStream> receivedEvents = new ArrayList<>();
+        private Throwable exception;
 
-        s3AsyncClient.selectObjectContent(request, handler);
+        @Override
+        public void responseReceived(SelectObjectContentResponse response) {
+            log.info("responseReceived");
+            this.response = response;
+        }
+
+        @Override
+        public void onEventStream(SdkPublisher<SelectObjectContentEventStream> publisher) {
+            log.info("onEventStream");
+            publisher.subscribe(receivedEvents::add);
+        }
+
+        @Override
+        public void exceptionOccurred(Throwable throwable) {
+            log.info("exceptionOccurred");
+            exception = throwable;
+        }
+
+        @Override
+        public void complete() {
+            log.info("complete");
+        }
     }
 }
