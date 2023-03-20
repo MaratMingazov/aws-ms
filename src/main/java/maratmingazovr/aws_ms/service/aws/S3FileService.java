@@ -9,12 +9,24 @@ import maratmingazovr.aws_ms.exception.AwsSdkException;
 import maratmingazovr.aws_ms.model.aws.AwsObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CompressionType;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.ExpressionType;
+import software.amazon.awssdk.services.s3.model.InputSerialization;
+import software.amazon.awssdk.services.s3.model.JSONInput;
+import software.amazon.awssdk.services.s3.model.JSONOutput;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
+import software.amazon.awssdk.services.s3.model.OutputSerialization;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.s3.model.SelectObjectContentEventStream;
+import software.amazon.awssdk.services.s3.model.SelectObjectContentRequest;
+import software.amazon.awssdk.services.s3.model.SelectObjectContentResponse;
+import software.amazon.awssdk.services.s3.model.SelectObjectContentResponseHandler;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tagging;
 
@@ -24,6 +36,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -32,6 +45,7 @@ import java.util.stream.Collectors;
 public class S3FileService {
 
     private final S3Client s3Client;
+    private final S3AsyncClient s3AsyncClient;
 
 
     public List<AwsObject> getBucketFiles(@NonNull String bucketName) {
@@ -45,6 +59,14 @@ public class S3FileService {
         } catch (Exception ex) {
             throw new AwsSdkException(String.format("S3ServiceException: Unable to get bucketFiles for bucketName='%s'. '%s'", bucketName, ex.getMessage()), ex);
         }
+    }
+
+    @NonNull
+    public void readFile(@NonNull String bucketName,
+                         @NonNull String fileName) {
+        val query = getQuery();
+        val request = generateJsonRequest(bucketName, fileName, query);
+        queryS3(request);
     }
 
     @NonNull
@@ -170,5 +192,65 @@ public class S3FileService {
     private String createURLFromBucketNameAndFileName(@NonNull String bucketName,
                                                      @NonNull String fileName) {
         return "s3://" + bucketName + "/" + fileName;
+    }
+
+    @NonNull
+    private String getQuery() {
+        return "Select * from s3object s";
+    }
+
+    @NonNull
+    private SelectObjectContentRequest generateJsonRequest(@NonNull String bucketName,
+                                                           @NonNull String fileName,
+                                                           @NonNull String query) {
+
+        val inputSerialization = InputSerialization
+                .builder()
+                .json(JSONInput.builder().type("Document").build())
+                .compressionType(CompressionType.NONE)
+                .build();
+
+        val outputSerialization = OutputSerialization
+                .builder()
+                .json(JSONOutput.builder().build())
+                .build();
+
+        return SelectObjectContentRequest
+                .builder()
+                .bucket(bucketName)
+                .key(fileName)
+                .expression(query)
+                .expressionType(ExpressionType.SQL)
+                .inputSerialization(inputSerialization)
+                .outputSerialization(outputSerialization)
+                .build();
+    }
+
+    @NonNull
+    private void queryS3(@NonNull SelectObjectContentRequest request) {
+
+        SelectObjectContentResponseHandler handler = new SelectObjectContentResponseHandler() {
+            @Override
+            public void responseReceived(SelectObjectContentResponse selectObjectContentResponse) {
+                log.info("responseReceived");
+            }
+
+            @Override
+            public void onEventStream(SdkPublisher<SelectObjectContentEventStream> sdkPublisher) {
+                log.info("onEventStream");
+            }
+
+            @Override
+            public void exceptionOccurred(Throwable throwable) {
+                log.info("exceptionOccurred");
+            }
+
+            @Override
+            public void complete() {
+                log.info("complete");
+            }
+        };
+
+        s3AsyncClient.selectObjectContent(request, handler);
     }
 }

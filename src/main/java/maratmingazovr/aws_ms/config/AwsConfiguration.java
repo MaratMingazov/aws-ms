@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
@@ -29,5 +30,14 @@ public class AwsConfiguration {
                         .region(config.getRegion())
                         .credentialsProvider(StaticCredentialsProvider.create(credentials))
                         .build();
+    }
+
+    @Bean
+    public S3AsyncClient s3AsyncClient(AwsConfig config) {
+        val credentials = AwsBasicCredentials.create(config.accessKeyId, config.secretAccessKey);
+        return S3AsyncClient.builder()
+                       .region(config.getRegion())
+                       .credentialsProvider(StaticCredentialsProvider.create(credentials))
+                       .build();
     }
 }
