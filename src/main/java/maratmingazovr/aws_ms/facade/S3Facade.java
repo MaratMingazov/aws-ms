@@ -25,8 +25,7 @@ public class S3Facade {
                              @NonNull String filename,
                              @NonNull InputStream inputStream) {
 
-        val url = s3Service.createURLFromBucketNameAndFileName(bucket, filename);
-        s3Service.putObject(url, inputStream);
+        val url = s3Service.uploadFile(bucket, filename, inputStream);
         s3EventService.createS3Event(bucket, filename);
         return url;
     }

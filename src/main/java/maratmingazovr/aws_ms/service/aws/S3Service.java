@@ -50,21 +50,16 @@ public class S3Service {
         }
     }
 
-    /**
-     *
-     * @param url format s3://bucket-name/path/file.txt
-     * @param inputStream
-     */
-    public void putObject(@NonNull String url, @NonNull InputStream inputStream) {
+    @NonNull
+    public  List<AwsBucket> getBuckets() {
         try {
-            val requestBody = RequestBody.fromBytes(ByteStreams.toByteArray(inputStream));
-            putObject(url, requestBody, Map.of());
-        } catch (IOException ex) {
-            throw new AwsSdkException(String.format("S3ServiceImplException: Could not convert inputStream to byteArray for url='%s'. '%s'", url, ex.getMessage()), ex);
+            val buckets = s3Client.listBuckets().buckets();
+            return buckets.stream()
+                          .map(bucket -> new AwsBucket(bucket.name(), bucket.creationDate()))
+                          .collect(Collectors.toList());
         } catch (Exception ex) {
-            throw new AwsSdkException(String.format("S3ServiceImplException: Unable to upload file for url='%s'. '%s'", url, ex.getMessage()), ex);
+            throw new AwsSdkException("S3ServiceImplException: Unable to get buckets.", ex);
         }
-
     }
 
     public List<AwsObject> getBucketFiles(@NonNull String bucketName) {
@@ -78,14 +73,65 @@ public class S3Service {
         } catch (Exception ex) {
             throw new AwsSdkException(String.format("S3ServiceException: Unable to get bucketFiles for bucketName='%s'. '%s'", bucketName, ex.getMessage()), ex);
         }
+    }
 
+    @NonNull
+    public String uploadFile(@NonNull String bucketName,
+                             @NonNull String fileName,
+                             @NonNull InputStream inputStream) {
+        val url = createURLFromBucketNameAndFileName(bucketName, fileName);
+        uploadFile(url, inputStream);
+        return url;
+    }
+
+    /**
+     *
+     * @param url format s3://bucket-name/path/file.txt
+     * @param inputStream
+     */
+    private void uploadFile(@NonNull String url,
+                            @NonNull InputStream inputStream) {
+        try {
+            val requestBody = RequestBody.fromBytes(ByteStreams.toByteArray(inputStream));
+            uploadFile(url, requestBody, Map.of());
+        } catch (IOException ex) {
+            throw new AwsSdkException(String.format("S3ServiceImplException: Could not convert inputStream to byteArray for url='%s'. '%s'", url, ex.getMessage()), ex);
+        } catch (Exception ex) {
+            throw new AwsSdkException(String.format("S3ServiceImplException: Unable to upload file for url='%s'. '%s'", url, ex.getMessage()), ex);
+        }
+    }
+
+    /**
+     *
+     * @param url format s3://bucket-name/path/file.txt
+     * @param requestBody
+     * @param tagsMap
+     */
+    private void uploadFile(@NonNull String url,
+                            @NonNull RequestBody requestBody,
+                            @NonNull Map<String, String> tagsMap) {
+        val builder = PutObjectRequest.builder();
+        addTagsIfNeeded(builder, tagsMap);
+        val request = builder
+                .bucket(getBucketFromUrl(url))
+                .key(getPathFromUrl(url))
+                .build();
+        s3Client.putObject(request, requestBody);
+    }
+
+    @NonNull
+    public String deleteFile(@NonNull String bucketName,
+                           @NonNull String fileName) {
+        val url = createURLFromBucketNameAndFileName(bucketName, fileName);
+        deleteFile(url);
+        return url;
     }
 
     /**
      * Delete file from bucket
      * @param url format s3://bucket-name/path/file.txt
      */
-    public void deleteObject(@NonNull String url) {
+    private void deleteFile(@NonNull String url) {
         val deleteObjectRequest = DeleteObjectRequest
                 .builder()
                 .bucket(getBucketFromUrl(url))
@@ -96,24 +142,6 @@ public class S3Service {
         } catch (Exception ex) {
             throw new AwsSdkException(String.format("S3ServiceException: Unable to delete file='%s'. '%s'", url, ex.getMessage()), ex);
         }
-    }
-
-    /**
-     *
-     * @param url format s3://bucket-name/path/file.txt
-     * @param requestBody
-     * @param tagsMap
-     */
-    private void putObject(@NonNull String url,
-                           @NonNull RequestBody requestBody,
-                           @NonNull Map<String, String> tagsMap) {
-        val builder = PutObjectRequest.builder();
-        addTagsIfNeeded(builder, tagsMap);
-        val request = builder
-                .bucket(getBucketFromUrl(url))
-                .key(getPathFromUrl(url))
-                .build();
-        s3Client.putObject(request, requestBody);
     }
 
     private void addTagsIfNeeded(@NonNull PutObjectRequest.Builder builder,
@@ -130,18 +158,6 @@ public class S3Service {
                        )
                 .build();
         builder.tagging(tagging);
-    }
-
-    @NonNull
-    public  List<AwsBucket> getBuckets() {
-        try {
-            val buckets = s3Client.listBuckets().buckets();
-            return buckets.stream()
-                    .map(bucket -> new AwsBucket(bucket.name(), bucket.creationDate()))
-                    .collect(Collectors.toList());
-        } catch (Exception ex) {
-            throw new AwsSdkException("S3ServiceImplException: Unable to get buckets.", ex);
-        }
     }
 
 
@@ -179,7 +195,7 @@ public class S3Service {
      * @return url format s3://bucket-name/path/file.txt
      */
     @NonNull
-    public String createURLFromBucketNameAndFileName(@NonNull String bucketName,
+    private String createURLFromBucketNameAndFileName(@NonNull String bucketName,
                                                      @NonNull String fileName) {
         return "s3://" + bucketName + "/" + fileName;
     }
