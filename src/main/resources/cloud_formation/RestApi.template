@@ -2,6 +2,15 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: This template deploys Rest Api Gateway
 
+Parameters:
+  ResponseTemplates:
+    Type: String
+    Default: |
+      #if($input.params('name')=="FirstName") {"name":"hello FirstName"}
+      #elseif($input.params('name')=="LastName") {"name":"hello LastName"}
+      #else{"name":"hello Noname"}
+      #end
+
 Resources:
 
   RestApi:
@@ -30,7 +39,7 @@ Resources:
         IntegrationResponses:
           - StatusCode: 200
             ResponseTemplates:
-              'application/json': '{"message": "ok"}'
+              'application/json': !Ref ResponseTemplates
         RequestTemplates:
           'application/json': '{"statusCode": 200}'
       MethodResponses:
