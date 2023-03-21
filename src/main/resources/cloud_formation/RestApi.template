@@ -6,33 +6,126 @@ Parameters:
   ResponseTemplates:
     Type: String
     Default: |
-      #if($input.params('name')=="FirstName") {"name":"hello FirstName"}
-      #elseif($input.params('name')=="LastName") {"name":"hello LastName"}
-      #else{"name":"hello Noname"}
-      #end
+      [
+        #if( $input.params('family') == "red" )
+        {
+          "description_str":"Xanya is the fire tribe's banished general. She broke ranks and has been wandering ever since.",
+          "dragon_name_str":"Xanya",
+          "family_str":"red",
+          "location_city_str":"las vegas",
+          "location_country_str":"usa",
+          "location_neighborhood_str":"e clark ave",
+          "location_state_str":"nevada"
+        }, 
+        {
+          "description_str":"Eislex flies with the fire sprites. He protects them and is their guardian.",
+          "dragon_name_str":"Eislex",
+          "family_str":"red",
+          "location_city_str":"st. cloud",
+          "location_country_str":"usa",
+          "location_neighborhood_str":"breckenridge ave",
+          "location_state_str":"minnesota"      
+        }
+        #elseif( $input.params('family') == "blue" )
+        {
+          "description_str":"Protheus is a wise and ancient dragon that serves on the grand council in the sky world. He uses his power to calm those near him.",
+          "dragon_name_str":"Protheus",
+          "family_str":"blue",
+          "location_city_str":"brandon",
+          "location_country_str":"usa",
+          "location_neighborhood_str":"e morgan st",
+          "location_state_str":"florida"
+        }
+        #elseif( $input.params('dragonName') == "Atlas" )
+        {
+          "description_str":"From the northern fire tribe, Atlas was born from the ashes of his fallen father in combat. He is fearless and does not fear battle.",
+          "dragon_name_str":"Atlas",
+          "family_str":"red",
+          "location_city_str":"anchorage",
+          "location_country_str":"usa",
+          "location_neighborhood_str":"w fireweed ln",
+          "location_state_str":"alaska"
+        }
+        #else
+        {
+          "description_str":"From the northern fire tribe, Atlas was born from the ashes of his fallen father in combat. He is fearless and does not fear battle.",
+          "dragon_name_str":"Atlas",
+          "family_str":"red",
+          "location_city_str":"anchorage",
+          "location_country_str":"usa",
+          "location_neighborhood_str":"w fireweed ln",
+          "location_state_str":"alaska"
+        },
+        {
+          "description_str":"Protheus is a wise and ancient dragon that serves on the grand council in the sky world. He uses his power to calm those near him.",
+          "dragon_name_str":"Protheus",
+          "family_str":"blue",
+          "location_city_str":"brandon",
+          "location_country_str":"usa",
+          "location_neighborhood_str":"e morgan st",
+          "location_state_str":"florida"
+        }
+        #end
+      ]
+
+  DragonModelSchema:
+    Type: String
+    Default: |
+      {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Dragon",
+        "type": "object",
+        "properties": {
+          "dragonName": { "type": "string" },
+          "description": { "type": "string" },
+          "family": { "type": "string" },
+          "city": { "type": "string" },
+          "country": { "type": "string" },
+          "state": { "type": "string" },
+          "neighborhood": { "type": "string" },
+          "reportingPhoneNumber": { "type": "string" },
+          "confirmationRequired": { "type": "boolean" }
+        },
+        "required": ["dragonName", "description", "family"]
+      }
+
+  DragonFrank:
+    Type: String
+    Default: |
+      {
+        "dragonName": "Frank",
+        "description": "This dragon is brand new, we don't know much about it yet.",
+        "family": "purple",
+        "city": "Seattle",
+        "country": "USA",
+        "state": "WA",
+        "neighborhood": "Downtown",
+        "reportingPhoneNumber": "15555555555",
+        "confirmationRequired": false
+      }
 
 Resources:
 
   RestApi:
     Type: AWS::ApiGateway::RestApi
     Properties:
-      Name: !Sub ${AWS::StackName}-RestApi
-      Description: !Sub ${AWS::StackName}-RestApi
+      Name: !Sub ${AWS::StackName}-DragonsApi
+      Description: !Sub ${AWS::StackName}-DragonsApi
       FailOnWarnings: true
 
-  HelloResource:
+  DragonsResource:
     Type: AWS::ApiGateway::Resource
     Properties:
       RestApiId: !Ref RestApi
       ParentId: !GetAtt RestApi.RootResourceId
-      PathPart: "hello"
+      PathPart: 'dragons'
 
-  HelloGetMethod:
+  DragonsGetMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: 'GET'
       AuthorizationType: 'NONE'
-      ResourceId: !Ref HelloResource
+      ResourceId: !Ref DragonsResource
       RestApiId: !Ref RestApi
       Integration:
         Type: 'MOCK'
@@ -44,3 +137,40 @@ Resources:
           'application/json': '{"statusCode": 200}'
       MethodResponses:
         - StatusCode: 200
+
+  DragonModel:
+    Type: AWS::ApiGateway::Model
+    Properties:
+      Name: Dragons
+      RestApiId: !Ref RestApi
+      Schema: !Ref DragonModelSchema
+      ContentType: 'application/json'
+
+  DragonsPostMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: 'POST'
+      AuthorizationType: 'NONE'
+      ResourceId: !Ref DragonsResource
+      RestApiId: !Ref RestApi
+      RequestModels:
+        'application/json': !Ref DragonModel
+      RequestValidatorId: !Ref DragonsPostRequestValidator
+      Integration:
+        Type: 'MOCK'
+        IntegrationResponses:
+          - StatusCode: 200
+        RequestTemplates:
+          'application/json': '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+
+  DragonsPostRequestValidator:
+    Type: AWS::ApiGateway::RequestValidator
+    Properties:
+      Name: !Sub ${AWS::StackName}-DragonsPostRequestValidator
+      RestApiId: !Ref RestApi
+      ValidateRequestBody: true
+      ValidateRequestParameters: false
+
+
