@@ -65,3 +65,10 @@ aws cloudformation create-stack \
         ParameterKey=ImportedDBStack,ParameterValue=DBStack \
         ParameterKey=ImageUrl,ParameterValue=registry-1.docker.io/maratmingazovr/aws-ms:v.1.0.0
 aws cloudformation delete-stack --stack-name ServiceStack
+
+
+aws cloudformation create-stack \
+    --stack-name RestApiStack \
+    --template-url https://maratmingazovr.s3.amazonaws.com/RestApi.template \
+    --region us-east-1
+aws cloudformation delete-stack --stack-name RestApiStack

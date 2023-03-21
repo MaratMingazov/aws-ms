@@ -1,0 +1,37 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template deploys Rest Api Gateway
+
+Resources:
+
+  RestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Sub ${AWS::StackName}-RestApi
+      Description: !Sub ${AWS::StackName}-RestApi
+      FailOnWarnings: true
+
+  HelloResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: "hello"
+
+  HelloGetMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: 'GET'
+      AuthorizationType: 'NONE'
+      ResourceId: !Ref HelloResource
+      RestApiId: !Ref RestApi
+      Integration:
+        Type: 'MOCK'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseTemplates:
+              'application/json': '{"message": "ok"}'
+        RequestTemplates:
+          'application/json': '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
