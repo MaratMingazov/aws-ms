@@ -173,4 +173,12 @@ Resources:
       ValidateRequestBody: true
       ValidateRequestParameters: false
 
+  Deployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn: DragonsGetMethod
+    Properties:
+      RestApiId: !Ref RestApi
+      StageName: "HttpStage"
+
+
 
