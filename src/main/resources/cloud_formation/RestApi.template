@@ -3,6 +3,11 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: This template deploys Rest Api Gateway
 
 Parameters:
+
+  ImportedCognitoStack:
+    Type: String
+    Default: CognitoStack
+
   ResponseTemplates:
     Type: String
     Default: |
@@ -124,7 +129,8 @@ Resources:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: 'GET'
-      AuthorizationType: 'NONE'
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
       ResourceId: !Ref DragonsResource
       RestApiId: !Ref RestApi
       Integration:
@@ -179,6 +185,16 @@ Resources:
     Properties:
       RestApiId: !Ref RestApi
       StageName: "HttpStage"
+
+  CognitoAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      IdentitySource: method.request.header.authorization
+      Name: !Sub ${AWS::StackName}-CognitoAuthorizer
+      ProviderARNs:
+        - Fn::ImportValue: !Sub ${ImportedCognitoStack}-CognitoUserPoolArn
+      RestApiId: !Ref RestApi
+      Type: COGNITO_USER_POOLS
 
 
 

@@ -1,0 +1,88 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template deploys Cognito User Pool
+
+Parameters:
+
+  CognitoDomain:
+    Type: String
+    MinLength: 3
+    MaxLength: 63
+    AllowedPattern: ^[a-z0-9](?:[a-z0-9\-]{0,61}[a-z0-9])?$
+    Description: Enter a string. Must be alpha numeric 3-63 in length.
+    Default: dragon-app15
+
+  CallbackURL:
+    Type: String
+    Default: https://maratmingazovr.s3.amazonaws.com/dragonsapp/index.html
+
+
+
+Resources:
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UsernameConfiguration:
+        CaseSensitive: false
+      AutoVerifiedAttributes:
+        - email
+      UserPoolName: !Sub ${CognitoDomain}-DragonsUserPool
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Mutable: false
+          Required: true
+        - Name: name
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Ref CognitoDomain
+      UserPoolId: !Ref UserPool
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      AllowedOAuthFlowsUserPoolClient: true
+      CallbackURLs:
+        - !Ref CallbackURL
+      AllowedOAuthFlows:
+        - implicit
+      AllowedOAuthScopes:
+        - openid
+        - email
+      SupportedIdentityProviders:
+        - COGNITO
+      ExplicitAuthFlows:
+        - ALLOW_REFRESH_TOKEN_AUTH
+
+
+
+Outputs:
+
+  CognitoUserPoolId:
+    Value: !Ref UserPool
+    Description: The UserPool ID
+    Export:
+      Name: !Sub ${AWS::StackName}-CognitoUserPoolId
+  CognitoUserPoolArn:
+    Value: !GetAtt UserPool.Arn
+    Description: The UserPool ARN
+    Export:
+      Name: !Sub ${AWS::StackName}-CognitoUserPoolArn
+  CognitoAppClientID:
+    Value: !Ref UserPoolClient
+    Description: The app client
+    Export:
+      Name: !Sub ${AWS::StackName}-CognitoAppClientID
+  HostedUIURL:
+    Value: !Sub https://${CognitoDomain}.auth.us-east-1.amazoncognito.com/login?client_id=${UserPoolClient}&response_type=token&scope=openid&redirect_uri=https://maratmingazovr.s3.amazonaws.com/dragonsapp/index.html
+    Description: The hosted UI URL
+
+
+

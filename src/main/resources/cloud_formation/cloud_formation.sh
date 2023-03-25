@@ -72,3 +72,9 @@ aws cloudformation create-stack \
     --template-url https://maratmingazovr.s3.amazonaws.com/RestApi.template \
     --region us-east-1
 aws cloudformation delete-stack --stack-name RestApiStack
+
+aws cloudformation create-stack \
+    --stack-name CognitoStack \
+    --template-url https://maratmingazovr.s3.amazonaws.com/Cognito.template \
+    --region us-east-1
+aws cloudformation delete-stack --stack-name CognitoStack
