@@ -69,6 +69,7 @@ aws cloudformation delete-stack --stack-name ServiceStack
 
 aws cloudformation create-stack \
     --stack-name RestApiStack \
+    --capabilities CAPABILITY_NAMED_IAM \
     --template-url https://maratmingazovr.s3.amazonaws.com/RestApi.template \
     --region us-east-1
 aws cloudformation delete-stack --stack-name RestApiStack

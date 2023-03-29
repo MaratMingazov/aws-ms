@@ -8,6 +8,15 @@ Parameters:
     Type: String
     Default: CognitoStack
 
+  ImportedLambdaStack:
+    Type: String
+    Default: LambdaStack
+
+  ApiGatewayStageName:
+    Type: String
+    AllowedPattern: '[a-zA-Z0-9]+'
+    Default: HttpStage
+
   ResponseTemplates:
     Type: String
     Default: |
@@ -134,15 +143,48 @@ Resources:
       ResourceId: !Ref DragonsResource
       RestApiId: !Ref RestApi
       Integration:
-        Type: 'MOCK'
-        IntegrationResponses:
-          - StatusCode: 200
-            ResponseTemplates:
-              'application/json': !Ref ResponseTemplates
+#        MOCK INTEGRATION
+#        Type: 'MOCK'
+#        IntegrationResponses:
+#          - StatusCode: 200
+#            ResponseTemplates:
+#              'application/json': !Ref ResponseTemplates
+        IntegrationHttpMethod: POST
+        Credentials: !GetAtt ApiGatewayIamRole.Arn
+        Type: AWS_PROXY
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+          - lambdaArn:
+              Fn::ImportValue: !Sub ${ImportedLambdaStack}-ListDragonsFunctionArn
         RequestTemplates:
           'application/json': '{"statusCode": 200}'
       MethodResponses:
         - StatusCode: 200
+
+  ApiGatewayIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: ''
+            Effect: 'Allow'
+            Principal:
+              Service:
+                - 'apigateway.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: '/'
+      Policies:
+        - PolicyName: LambdaAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action: 'lambda:*'
+                Resource:
+                  Fn::ImportValue: !Sub ${ImportedLambdaStack}-ListDragonsFunctionArn
+
 
   DragonModel:
     Type: AWS::ApiGateway::Model
@@ -184,7 +226,7 @@ Resources:
     DependsOn: DragonsGetMethod
     Properties:
       RestApiId: !Ref RestApi
-      StageName: "HttpStage"
+      StageName: !Ref ApiGatewayStageName
 
   CognitoAuthorizer:
     Type: AWS::ApiGateway::Authorizer

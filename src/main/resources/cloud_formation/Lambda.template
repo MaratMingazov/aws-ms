@@ -71,6 +71,12 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}-ListDragonsFunction
 
+  ListDragonsFunctionArn:
+    Description: A reference to the created ListDragonsFunctionArn
+    Value: !GetAtt ListDragonsFunction.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-ListDragonsFunctionArn
+
 
 
 
