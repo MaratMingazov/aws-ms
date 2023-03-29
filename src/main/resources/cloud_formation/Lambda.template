@@ -1,0 +1,76 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template deploys Lambda Functions
+
+Parameters:
+
+  ListDragonsFunctionHandler:
+    Type: String
+    Default: maratmingazov.ListDragonsApp::handleRequest
+
+  S3Bucket:
+    Type: String
+    Default: maratmingazovr
+
+  S3Key:
+    Type: String
+    Default: list-dragons-ms.jar
+
+
+
+Resources:
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: !Sub ${AWS::StackName}-Policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*:*
+
+
+
+  ListDragonsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: !Ref ListDragonsFunctionHandler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref S3Key
+      Runtime: java11
+      FunctionName: !Sub ${AWS::StackName}-ListDragonsFunction
+
+Outputs:
+  ListDragonsFunction:
+    Description: A reference to the created ListDragonsFunction
+    Value: !Ref ListDragonsFunction
+    Export:
+      Name: !Sub ${AWS::StackName}-ListDragonsFunction
+
+
+
+

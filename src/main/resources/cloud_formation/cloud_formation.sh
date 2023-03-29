@@ -78,3 +78,10 @@ aws cloudformation create-stack \
     --template-url https://maratmingazovr.s3.amazonaws.com/Cognito.template \
     --region us-east-1
 aws cloudformation delete-stack --stack-name CognitoStack
+
+aws cloudformation create-stack \
+    --stack-name LambdaStack \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --template-url https://maratmingazovr.s3.amazonaws.com/Lambda.template \
+    --region us-east-1
+aws cloudformation delete-stack --stack-name LambdaStack
