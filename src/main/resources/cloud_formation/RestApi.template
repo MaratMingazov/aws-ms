@@ -138,8 +138,9 @@ Resources:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: 'GET'
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref CognitoAuthorizer
+#      AuthorizationType: COGNITO_USER_POOLS
+#      AuthorizerId: !Ref CognitoAuthorizer
+      AuthorizationType: NONE
       ResourceId: !Ref DragonsResource
       RestApiId: !Ref RestApi
       Integration:
@@ -228,15 +229,15 @@ Resources:
       RestApiId: !Ref RestApi
       StageName: !Ref ApiGatewayStageName
 
-  CognitoAuthorizer:
-    Type: AWS::ApiGateway::Authorizer
-    Properties:
-      IdentitySource: method.request.header.authorization
-      Name: !Sub ${AWS::StackName}-CognitoAuthorizer
-      ProviderARNs:
-        - Fn::ImportValue: !Sub ${ImportedCognitoStack}-CognitoUserPoolArn
-      RestApiId: !Ref RestApi
-      Type: COGNITO_USER_POOLS
+#  CognitoAuthorizer:
+#    Type: AWS::ApiGateway::Authorizer
+#    Properties:
+#      IdentitySource: method.request.header.authorization
+#      Name: !Sub ${AWS::StackName}-CognitoAuthorizer
+#      ProviderARNs:
+#        - Fn::ImportValue: !Sub ${ImportedCognitoStack}-CognitoUserPoolArn
+#      RestApiId: !Ref RestApi
+#      Type: COGNITO_USER_POOLS
 
 
 
