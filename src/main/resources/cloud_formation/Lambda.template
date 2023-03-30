@@ -50,12 +50,23 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*:*
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameters
+                  - ssm:GetParameter
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: '*'
 
 
 
   ListDragonsFunction:
     Type: AWS::Lambda::Function
     Properties:
+      MemorySize: 512
+      Timeout: 60
       Handler: !Ref ListDragonsFunctionHandler
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
