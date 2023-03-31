@@ -4,17 +4,35 @@ Description: This template deploys Lambda Functions
 
 Parameters:
 
-  ListDragonsFunctionHandler:
+  ListDragonsHandler:
     Type: String
     Default: maratmingazov.ListDragonsApp::handleRequest
+
+  AddDragonHandler:
+    Type: String
+    Default: maratmingazov.AddDragonApp::handleRequest
+
+  ValidateDragonHandler:
+    Type: String
+    Default: maratmingazov.ValidateDragonApp::handleRequest
 
   S3Bucket:
     Type: String
     Default: maratmingazovr
 
-  S3Key:
+  ListDragonsMS:
     Type: String
     Default: list-dragons-ms.jar
+
+  AddDragonMS:
+    Type: String
+    Default: add-dragon-ms.jar
+
+  ValidateDragonMS:
+    Type: String
+    Default: validate-dragon-ms.jar
+
+
 
 
 
@@ -67,13 +85,39 @@ Resources:
     Properties:
       MemorySize: 512
       Timeout: 60
-      Handler: !Ref ListDragonsFunctionHandler
+      Handler: !Ref ListDragonsHandler
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
         S3Bucket: !Ref S3Bucket
-        S3Key: !Ref S3Key
+        S3Key: !Ref ListDragonsMS
       Runtime: java11
       FunctionName: !Sub ${AWS::StackName}-ListDragonsFunction
+
+  AddDragonFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      MemorySize: 512
+      Timeout: 60
+      Handler: !Ref AddDragonHandler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref AddDragonMS
+      Runtime: java11
+      FunctionName: !Sub ${AWS::StackName}-AddDragonFunction
+
+  ValidateDragonFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      MemorySize: 512
+      Timeout: 60
+      Handler: !Ref ValidateDragonHandler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref ValidateDragonMS
+      Runtime: java11
+      FunctionName: !Sub ${AWS::StackName}-ValidateDragonFunction
 
 Outputs:
   ListDragonsFunction:
@@ -82,11 +126,35 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}-ListDragonsFunction
 
+  AddDragonFunction:
+    Description: A reference to the created AddDragonFunction
+    Value: !Ref AddDragonFunction
+    Export:
+      Name: !Sub ${AWS::StackName}-AddDragonFunction
+
+  ValidateDragonFunction:
+    Description: A reference to the created ValidateDragonFunction
+    Value: !Ref ValidateDragonFunction
+    Export:
+      Name: !Sub ${AWS::StackName}-ValidateDragonFunction
+
   ListDragonsFunctionArn:
     Description: A reference to the created ListDragonsFunctionArn
     Value: !GetAtt ListDragonsFunction.Arn
     Export:
       Name: !Sub ${AWS::StackName}-ListDragonsFunctionArn
+
+  AddDragonFunctionArn:
+    Description: A reference to the created AddDragonFunctionArn
+    Value: !GetAtt AddDragonFunction.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-AddDragonFunctionArn
+
+  ValidateDragonFunctionArn:
+    Description: A reference to the created ValidateDragonFunctionArn
+    Value: !GetAtt ValidateDragonFunction.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-ValidateDragonFunctionArn
 
 
 
