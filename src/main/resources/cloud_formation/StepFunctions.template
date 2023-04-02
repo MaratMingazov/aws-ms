@@ -7,6 +7,10 @@ Parameters:
     Type: String
     Default: LambdaStack
 
+  DragonValidationException:
+    Type: String
+    Default: maratmingazov.DragonValidationException
+
 Resources:
 
   StateMachine:
@@ -22,9 +26,16 @@ Resources:
           ValidateDragon:
             Type: Task
             Resource:
-              Fn::ImportValue: !Sub ${ImportedLambdaStack}-ValidateDragonFunctionArn
+                Fn::ImportValue: !Sub ${ImportedLambdaStack}-ValidateDragonFunctionArn
+            Catch:
+              - ErrorEquals:
+                  - !Ref DragonValidationException
+                Next: AlertDragonValidationFailure
             Next: SecondState
           SecondState:
+            Type: Pass
+            End: true
+          AlertDragonValidationFailure:
             Type: Pass
             End: true
 
