@@ -86,3 +86,10 @@ aws cloudformation create-stack \
     --template-url https://maratmingazovr.s3.amazonaws.com/Lambda.template \
     --region us-east-1
 aws cloudformation delete-stack --stack-name LambdaStack
+
+aws cloudformation create-stack \
+    --stack-name StepFunctionsStack \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --template-url https://maratmingazovr.s3.amazonaws.com/StepFunctions.template \
+    --region us-east-1
+aws cloudformation delete-stack --stack-name StepFunctionsStack

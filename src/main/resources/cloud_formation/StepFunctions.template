@@ -1,0 +1,82 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template deploys Step Function
+
+
+Resources:
+
+  StateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      StateMachineName: !Sub ${AWS::StackName}-StateMachine
+      StateMachineType: STANDARD
+      RoleArn: !GetAtt StateMachineRole.Arn
+      Definition:
+        Comment: !Sub ${AWS::StackName}-StateMachineComment
+        StartAt: FirstState
+        States:
+          FirstState:
+            Type: Pass
+            Next: SecondState
+          SecondState:
+            Type: Pass
+            End: true
+
+
+
+  StateMachineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - states.amazonaws.com
+      Policies:
+#        - PolicyName: !Sub "${Prefix}-InvokeTaskFunctions"
+#          PolicyDocument:
+#            Version: 2012-10-17
+#            Statement:
+#              - Effect: Allow
+#                Action:
+#                  - lambda:InvokeFunction
+#                Resource:
+#                  - !Ref Function1Arn
+#                  - !Ref Function2Arn
+        - PolicyName: !Sub ${AWS::StackName}-LogPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogDelivery
+                  - logs:GetLogDelivery
+                  - logs:UpdateLogDelivery
+                  - logs:DeleteLogDelivery
+                  - logs:ListLogDeliveries
+                  - logs:PutLogEvents
+                  - logs:PutResourcePolicy
+                  - logs:DescribeResourcePolicies
+                  - logs:DescribeLogGroups
+                Resource: "*"
+
+
+
+
+
+Outputs:
+  StateMachine:
+    Description: A reference to the created StateMachine
+    Value: !Ref StateMachine
+    Export:
+      Name: !Sub ${AWS::StackName}-StateMachine
+
+
+  StateMachineArn:
+    Description: A reference to the created StateMachineArn
+    Value: !GetAtt StateMachine.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-StateMachineArn
