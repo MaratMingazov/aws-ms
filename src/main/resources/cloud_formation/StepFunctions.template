@@ -2,6 +2,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: This template deploys Step Function
 
+Parameters:
+  ImportedLambdaStack:
+    Type: String
+    Default: LambdaStack
 
 Resources:
 
@@ -13,10 +17,12 @@ Resources:
       RoleArn: !GetAtt StateMachineRole.Arn
       Definition:
         Comment: !Sub ${AWS::StackName}-StateMachineComment
-        StartAt: FirstState
+        StartAt: ValidateDragon
         States:
-          FirstState:
-            Type: Pass
+          ValidateDragon:
+            Type: Task
+            Resource:
+              Fn::ImportValue: !Sub ${ImportedLambdaStack}-ValidateDragonFunctionArn
             Next: SecondState
           SecondState:
             Type: Pass
@@ -36,16 +42,15 @@ Resources:
               Service:
                 - states.amazonaws.com
       Policies:
-#        - PolicyName: !Sub "${Prefix}-InvokeTaskFunctions"
-#          PolicyDocument:
-#            Version: 2012-10-17
-#            Statement:
-#              - Effect: Allow
-#                Action:
-#                  - lambda:InvokeFunction
-#                Resource:
-#                  - !Ref Function1Arn
-#                  - !Ref Function2Arn
+        - PolicyName: !Sub ${AWS::StackName}-InvokeTaskFunctions
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource:
+                  - Fn::ImportValue: !Sub ${ImportedLambdaStack}-ValidateDragonFunctionArn
         - PolicyName: !Sub ${AWS::StackName}-LogPolicy
           PolicyDocument:
             Version: 2012-10-17
