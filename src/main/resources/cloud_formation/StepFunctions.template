@@ -19,6 +19,10 @@ Parameters:
     Type: String
     Default: Something unknown went wrong.
 
+  AddDragonSuccessMessage:
+    Type: String
+    Default: The dragon you reported has been added!
+
 Resources:
 
   StateMachine:
@@ -41,14 +45,17 @@ Resources:
               - ErrorEquals:
                   - !Ref DragonValidationException
                 Next: AlertDragonValidationFailure
+                ResultPath: $.result
               - ErrorEquals:
                   - States.ALL
                 Next: CatchAllFailure
             Next: AddDragon
+            ResultPath: $.validationResult
           AlertDragonValidationFailure:
             Type: Task
-            Resource: ARN:AWS:STATES:::SNS:PUBLISH
+            Resource: arn:aws:states:::sns:publish
             Parameters:
+#              TopicArn:
               Message: !Ref DragonValidationErrorMessage
               PhoneNumber.$: $.reportingPhoneNumber
             End: TRUE
@@ -56,8 +63,32 @@ Resources:
             Type: Fail
             Cause: !Ref UnknownErrorMessage
           AddDragon:
-            Type: Pass
+            Type: Task
+            Resource:
+              Fn::ImportValue: !Sub ${ImportedLambdaStack}-AddDragonFunctionArn
+            ResultPath: $.result
+            Next: ConfirmationRequired
+          ConfirmationRequired:
+            Type: Choice
+            Choices:
+              - Variable: $.confirmationRequired
+                BooleanEquals: true
+                Next: AlertAddDragonSuccess
+              - Variable: $.confirmationRequired
+                BooleanEquals: false
+                Next: NoAlertAddDragonSuccess
+            Default: "CatchAllFailure"
+          AlertAddDragonSuccess:
+            Type: Task
+            Resource: arn:aws:states:::sns:publish
+            Parameters:
+              #  TopicArn:
+              Message: !Ref AddDragonSuccessMessage
+              PhoneNumber.$: $.reportingPhoneNumber
             End: TRUE
+          NoAlertAddDragonSuccess:
+            Type: Succeed
+
 
 
 
@@ -85,6 +116,7 @@ Resources:
                   - lambda:InvokeFunction
                 Resource:
                   - Fn::ImportValue: !Sub ${ImportedLambdaStack}-ValidateDragonFunctionArn
+                  - Fn::ImportValue: !Sub ${ImportedLambdaStack}-AddDragonFunctionArn
         - PolicyName: !Sub ${AWS::StackName}-LogPolicy
           PolicyDocument:
             Version: 2012-10-17
