@@ -11,6 +11,14 @@ Parameters:
     Type: String
     Default: maratmingazov.DragonValidationException
 
+  DragonValidationErrorMessage:
+    Type: String
+    Default: The dragon you reported failed validation and was not added.
+
+  UnknownErrorMessage:
+    Type: String
+    Default: Something unknown went wrong.
+
 Resources:
 
   StateMachine:
@@ -19,6 +27,8 @@ Resources:
       StateMachineName: !Sub ${AWS::StackName}-StateMachine
       StateMachineType: STANDARD
       RoleArn: !GetAtt StateMachineRole.Arn
+      TracingConfiguration:
+        Enabled: TRUE
       Definition:
         Comment: !Sub ${AWS::StackName}-StateMachineComment
         StartAt: ValidateDragon
@@ -31,13 +41,26 @@ Resources:
               - ErrorEquals:
                   - !Ref DragonValidationException
                 Next: AlertDragonValidationFailure
-            Next: SecondState
-          SecondState:
-            Type: Pass
-            End: true
+              - ErrorEquals:
+                  - States.ALL
+                Next: CatchAllFailure
+            Next: AddDragon
           AlertDragonValidationFailure:
+            Type: Task
+            Resource: ARN:AWS:STATES:::SNS:PUBLISH
+            Parameters:
+              Message: !Ref DragonValidationErrorMessage
+              PhoneNumber.$: $.reportingPhoneNumber
+            End: TRUE
+          CatchAllFailure:
+            Type: Fail
+            Cause: !Ref UnknownErrorMessage
+          AddDragon:
             Type: Pass
-            End: true
+            End: TRUE
+
+
+
 
 
 
@@ -77,6 +100,23 @@ Resources:
                   - logs:PutResourcePolicy
                   - logs:DescribeResourcePolicies
                   - logs:DescribeLogGroups
+                Resource: "*"
+        - PolicyName: !Sub ${AWS::StackName}-SNSPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                  - SNS:GetTopicAttributes
+                  - SNS:SetTopicAttributes
+                  - SNS:AddPermission
+                  - SNS:RemovePermission
+                  - SNS:DeleteTopic
+                  - SNS:Subscribe
+                  - SNS:ListSubscriptionsByTopic
+                  - SNS:Publish
+                  - SNS:Receive
                 Resource: "*"
 
 
