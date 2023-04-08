@@ -12,6 +12,10 @@ Parameters:
     Type: String
     Default: LambdaStack
 
+  ImportedStepFunctionsStack:
+    Type: String
+    Default: StepFunctionsStack;
+
   ApiGatewayStageName:
     Type: String
     AllowedPattern: '[a-zA-Z0-9]+'
@@ -185,6 +189,13 @@ Resources:
                 Action: 'lambda:*'
                 Resource:
                   Fn::ImportValue: !Sub ${ImportedLambdaStack}-ListDragonsFunctionArn
+        - PolicyName: StepFunctionAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action: 'states:StartExecution'
+                Resource: '*'
 
 
   DragonModel:
@@ -206,11 +217,48 @@ Resources:
         'application/json': !Ref DragonModel
       RequestValidatorId: !Ref DragonsPostRequestValidator
       Integration:
-        Type: 'MOCK'
+#        Type: 'MOCK'
+#        IntegrationResponses:
+#          - StatusCode: 200
+#        RequestTemplates:
+#          'application/json': '{"statusCode": 200}
+        Type: AWS
+        IntegrationHttpMethod: POST
+        Credentials: !GetAtt ApiGatewayIamRole.Arn
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:states:action/StartExecution
         IntegrationResponses:
           - StatusCode: 200
         RequestTemplates:
-          'application/json': '{"statusCode": 200}'
+          application/json: |
+            #set($data = $input.path('$'))
+            #set($input = " {
+              ""dragon_name_str"" : ""$data.dragonName"",
+              ""description_str"" : ""$data.description"",
+              ""family_str"" : ""$data.family"",
+              ""location_city_str"" : ""$data.city"",
+              ""location_country_str"" : ""$data.country"",
+              ""location_state_str"" : ""$data.state"",
+              ""location_neighborhood_str"" : ""$data.neighborhood"",
+              ""reportingPhoneNumber"" : ""$data.reportingPhoneNumber"",
+              ""confirmationRequired"" : $data.confirmationRequired}")
+            
+              {
+                "input": "$util.escapeJavaScript($input).replaceAll("\\'", "'")",
+                "stateMachineArn": "arn:aws:states:us-east-1:513523631236:stateMachine:StepFunctionsStack-StateMachine"
+              }
+            
+            
+
+#Fn::ImportValue: !Sub ${ImportedLambdaStack}-ListDragonsFunctionArn
+
+
+#            "Fn::Sub": [ "{\"input\": \"$util.escapeJavaScript($input.json('$'))\",\"stateMachineArn\": \"${arn}\"}",
+#              {
+#                "arn": {
+#                  "Ref": "[StepMachineResourceName]"
+#                }
+#              } ]
+
       MethodResponses:
         - StatusCode: 200
 
@@ -224,7 +272,7 @@ Resources:
 
   Deployment:
     Type: AWS::ApiGateway::Deployment
-    DependsOn: DragonsGetMethod
+    DependsOn: [DragonsGetMethod, DragonsPostMethod] #
     Properties:
       RestApiId: !Ref RestApi
       StageName: !Ref ApiGatewayStageName
