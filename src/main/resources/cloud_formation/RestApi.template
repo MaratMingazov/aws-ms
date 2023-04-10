@@ -181,7 +181,7 @@ Resources:
               - 'sts:AssumeRole'
       Path: '/'
       Policies:
-        - PolicyName: LambdaAccess
+        - PolicyName: !Sub ${AWS::StackName}-LambdaAccess
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -189,13 +189,36 @@ Resources:
                 Action: 'lambda:*'
                 Resource:
                   Fn::ImportValue: !Sub ${ImportedLambdaStack}-ListDragonsFunctionArn
-        - PolicyName: StepFunctionAccess
+        - PolicyName: !Sub ${AWS::StackName}-StepFunctionAccess
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
               - Effect: 'Allow'
                 Action: 'states:StartExecution'
                 Resource: '*'
+        - PolicyName: !Sub ${AWS::StackName}-LogPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogDelivery
+                  - logs:GetLogDelivery
+                  - logs:UpdateLogDelivery
+                  - logs:DeleteLogDelivery
+                  - logs:ListLogDeliveries
+                  - logs:PutLogEvents
+                  - logs:PutResourcePolicy
+                  - logs:DescribeResourcePolicies
+                  - logs:DescribeLogGroups
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                  - logs:PutLogEvents
+                  - logs:GetLogEvents
+                  - logs:FilterLogEvents
+                Resource: "*"
 
 
   DragonModel:
@@ -276,6 +299,19 @@ Resources:
     Properties:
       RestApiId: !Ref RestApi
       StageName: !Ref ApiGatewayStageName
+      StageDescription:
+        MetricsEnabled: 'true'
+        DataTraceEnabled: 'true'
+        LoggingLevel: INFO
+
+
+        StageDescription:
+          Description: Stage - DEV
+          LoggingLevel: INFO
+          MethodSettings:
+            - ResourcePath: "/testresource"
+              HttpMethod: "POST"
+              LoggingLevel: INFO
 
 #  CognitoAuthorizer:
 #    Type: AWS::ApiGateway::Authorizer

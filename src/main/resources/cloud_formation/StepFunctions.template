@@ -30,6 +30,12 @@ Resources:
     Properties:
       StateMachineName: !Sub ${AWS::StackName}-StateMachine
       StateMachineType: STANDARD
+      LoggingConfiguration:
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt StateMachineLogGroup.Arn
+        IncludeExecutionData: True
+        Level: ALL
       RoleArn: !GetAtt StateMachineRole.Arn
       TracingConfiguration:
         Enabled: TRUE
@@ -90,6 +96,11 @@ Resources:
             Type: Succeed
 
 
+  StateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/stepfunction/StateMachineLogGroup
+      RetentionInDays: 14
 
 
 
